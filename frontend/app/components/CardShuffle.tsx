@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
+
+// Define the type for card data
+interface Card {
+  code: string;
+  image: string;
+  value: string;
+  suit: string;
+}
 
 // CardDeck Component to fetch random cards and display them
 const CardDeck = () => {
   const [deckId, setDeckId] = useState<string | null>(null);
-  const [cards, setCards] = useState<any[]>([]);
-  const [flipped, setFlipped] = useState(false);
+  const [cards, setCards] = useState<Card[]>([]);
   const [highlighted, setHighlighted] = useState<number | null>(null); // Track the held card index
   const [revealIndex, setRevealIndex] = useState(0); // Track the card to reveal sequentially
 
@@ -34,7 +42,7 @@ const CardDeck = () => {
   // Function to reveal cards sequentially
   const revealCards = () => {
     if (revealIndex < cards.length) {
-      setRevealIndex(revealIndex + 1); // Reveal the next card
+      setRevealIndex((prev) => prev + 1); // Reveal the next card
     }
   };
 
@@ -53,9 +61,7 @@ const CardDeck = () => {
         Start Math
       </button>
 
-      <div
-        className="relative w-full h-[500px] flex justify-center items-center space-x-6"
-      >
+      <div className="relative w-full h-[500px] flex justify-center items-center space-x-6">
         {/* Display 4 drawn cards side by side */}
         {cards.map((card, index) => (
           <motion.div
@@ -65,9 +71,9 @@ const CardDeck = () => {
             }`} // Highlight the held card
             initial={{ x: index * -200, y: 20 }}
             animate={{
-              x: flipped ? index * 20 : 0, // Spread cards horizontally if not flipped
+              x: revealIndex > index ? index * 20 : 0, // Spread cards horizontally if revealed
               y: 0,
-              rotateY: flipped ? 180 : 0, // Flip the card 180 degrees on reveal
+              rotateY: revealIndex > index ? 180 : 0, // Flip the card 180 degrees on reveal
             }}
             transition={{ duration: 1 }} // Adjusted for smoother flip
             style={{ perspective: 1000 }} // Add perspective for better 3D flip effect
@@ -77,17 +83,19 @@ const CardDeck = () => {
               className="w-full h-full flex justify-center items-center"
               style={{
                 transformStyle: "preserve-3d", // Allow flipping
-                transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)", // Rotate 180 degrees on reveal
+                transform: revealIndex > index ? "rotateY(180deg)" : "rotateY(0deg)", // Rotate 180 degrees on reveal
                 transition: "transform 0.8s", // Flip animation duration
               }}
             >
               {/* Front side of the card (card face) */}
               <div className="w-full h-full flex justify-center items-center">
-                {flipped ? (
-                  <img
+                {revealIndex > index ? (
+                  <Image
                     src={card.image}
                     alt={`${card.value} of ${card.suit}`}
                     className="w-full h-full object-cover"
+                    width={150}
+                    height={205}
                   />
                 ) : (
                   <div
@@ -113,7 +121,7 @@ const CardDeck = () => {
           onClick={revealCards} // Reveal cards sequentially
           className="p-4 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
         >
-          Reveal Cardscd
+          Reveal Cards
         </button>
       </div>
     </div>

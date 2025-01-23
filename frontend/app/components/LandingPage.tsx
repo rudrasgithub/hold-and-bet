@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { Coins, Users, WalletCardsIcon as Cards, Lock, Wallet, Shield } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
 import * as LucideIcons from 'lucide-react';
 
 export default function LandingPage() {
