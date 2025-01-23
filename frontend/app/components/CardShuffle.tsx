@@ -113,7 +113,7 @@ const CardDeck = () => {
           onClick={revealCards} // Reveal cards sequentially
           className="p-4 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
         >
-          Reveal Cards
+          Reveal Cardscd
         </button>
       </div>
     </div>
