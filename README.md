@@ -112,5 +112,5 @@ This project is licensed under the [MIT License](LICENSE).
 ## 📧 **Contact**
 
 For any queries or contributions, reach out to:  
-**Your Name**: [Email](mailto:rudramanaidu99@gmail.com)  
-GitHub: [](https://github.com/rudrasgithub)
+**Gmail**: [Pasupuleti Rudrama Naidu](mailto:rudramanaidu99@gmail.com)  
+**GitHub**: [@rudrasgithub](https://github.com/rudrasgithub)
