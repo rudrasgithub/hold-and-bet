@@ -7,7 +7,7 @@
 ## 🚀 **Features**
 
 - **Strategic Gameplay**: Hold one card and place bets on three decks.
-- **Integrated Wallet**: Secure transactions via Stripe/PayPal for deposits, withdrawals, and betting.
+- **Integrated Wallet**: Secure transactions via Stripe for deposits, withdrawals, and betting.
 - **Real-Time Updates**: WebSocket-based gameplay for live updates on wins and losses.
 - **Dynamic Animations**: Immersive animations for shuffling, deck displays, and live results.
 - **Secure Data Handling**: 
