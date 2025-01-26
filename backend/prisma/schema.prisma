@@ -9,35 +9,55 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  password     String
-  wallet       Float         @default(0.0)
-  games        Game[]
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  wallet    Wallet[]
+  games     Game[]
+  createdAt DateTime @default(now())
+}
+
+model Wallet {
+  id           Int           @id @default(autoincrement())
+  balance      Float         @default(0.0)
+  userId       Int           @unique
+  User         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
 }
 
 model Game {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  status    String   @default("active")
-  betLimit  Float?
-  limitless Boolean  @default(false)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  status    gameType
+  bets      Json
   createdAt DateTime @default(now())
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id        String          @id @default(uuid())
   amount    Float
-  type      String
-  createdAt DateTime @default(now())
+  type      transactionType
+  walletId  Int
+  Wallet    Wallet          @relation(fields: [walletId], references: [id])
+  createdAt DateTime        @default(now())
+}
+
+enum transactionType {
+  Deposit
+  Withdrawal
+  BetWin
+  BetLoss
+}
+
+enum gameType {
+  Completed
+  Active
 }
