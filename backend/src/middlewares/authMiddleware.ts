@@ -4,7 +4,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 interface User {
   id: string;
   email: string;
-  role?: string;
 }
 
 export interface CustomRequest extends Request {
