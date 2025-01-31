@@ -1,15 +1,9 @@
-declare module 'express';
-declare module 'cors';
-declare module 'body-parser';
-declare module 'jsonwebtoken';
-declare module 'bcryptjs';
-
 // src/types.d.ts
 
 declare global {
   namespace Express {
     interface Request {
-      body?: unknown; // Replace with `unknown` to ensure type safety
+      body?: unknown; // Replace with `unknown` for type safety
       params?: {
         [key: string]: string;
       };
@@ -18,8 +12,10 @@ declare global {
 
     interface Response {
       status(code: number): this;
-      json(body: unknown): this; // Change `any` to `unknown`
-      send(body?: unknown): this; // Change `any` to `unknown`
+      json(body: unknown): this;
+      send(body?: unknown): this;
     }
   }
 }
+
+export {}; // Ensure this file is treated as a module
