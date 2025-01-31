@@ -3,3 +3,8 @@ declare module "stripe";
 declare module "dotenv";
 declare module "helmet";
 declare module "morgan";
+declare module "express";
+declare module "cors";
+declare module "body-parser";
+declare module "jsonwebtoken";
+declare module "bcryptjs";
