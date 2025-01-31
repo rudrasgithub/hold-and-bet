@@ -25,7 +25,7 @@ export default function authenticate(
   console.log('token generated');
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-    req.user = payload;
+    req.user = payload as User;
     next();
   } catch (error) {
     console.log(error);

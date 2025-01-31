@@ -80,7 +80,7 @@ router.post('/withdraw', authMiddleware_1.default, (req, res) => __awaiter(void 
             });
             yield tx.transaction.create({
                 data: {
-                    userId,
+                    userId: userId,
                     walletId: wallet.id,
                     amount,
                     type: 'Withdrawal',

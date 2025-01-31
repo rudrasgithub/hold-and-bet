@@ -84,7 +84,7 @@ router.post(
 
         await tx.transaction.create({
           data: {
-            userId,
+            userId: userId as string,
             walletId: wallet.id,
             amount,
             type: 'Withdrawal',

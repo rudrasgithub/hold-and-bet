@@ -260,7 +260,7 @@ router.post('/:gameId/reveal', authMiddleware_1.default, (req, res) => __awaiter
                 data: {
                     amount: totalEarnings,
                     type: totalEarnings > 0 ? 'BetWin' : 'BetLoss',
-                    userId,
+                    userId: userId,
                     walletId,
                     gameId,
                     status: 'Completed',

@@ -316,7 +316,7 @@ router.post(
           data: {
             amount: totalEarnings,
             type: totalEarnings > 0 ? 'BetWin' : 'BetLoss',
-            userId,
+            userId: userId as string,
             walletId,
             gameId,
             status: 'Completed',
