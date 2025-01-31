@@ -12,8 +12,8 @@ importers:
         specifier: ^1.2.5
         version: 1.2.5(eslint@9.19.0)
       '@prisma/client':
-        specifier: 6.2.1
-        version: 6.2.1(prisma@6.3.0(typescript@5.7.3))
+        specifier: 6.3.0
+        version: 6.3.0(prisma@6.3.0(typescript@5.7.3))(typescript@5.7.3)
       '@types/morgan':
         specifier: ^1.9.9
         version: 1.9.9
@@ -48,7 +48,7 @@ importers:
         specifier: ^5.3.0
         version: 5.4.3
       prisma:
-        specifier: ^6.3.0
+        specifier: 6.3.0
         version: 6.3.0(typescript@5.7.3)
       redis:
         specifier: ^4.7.0
@@ -220,13 +220,16 @@ packages:
   '@pm2/pm2-version-check@1.0.4':
     resolution: {integrity: sha512-SXsM27SGH3yTWKc2fKR4SYNxsmnvuBQ9dd6QHtEWmiZ/VqaOYPAIlS8+vMcn27YLtAEBGvNRSh3TPNvtjZgfqA==}
 
-  '@prisma/client@6.2.1':
-    resolution: {integrity: sha512-msKY2iRLISN8t5X0Tj7hU0UWet1u0KuxSPHWuf3IRkB4J95mCvGpyQBfQ6ufcmvKNOMQSq90O2iUmJEN2e5fiA==}
+  '@prisma/client@6.3.0':
+    resolution: {integrity: sha512-BY3Fi28PUSk447Bpv22LhZp4HgNPo7NsEN+EteM1CLDnLjig5863jpW+3c3HHLFmml+nB/eJv1CjSriFZ8z7Cg==}
     engines: {node: '>=18.18'}
     peerDependencies:
       prisma: '*'
+      typescript: '>=5.1.0'
     peerDependenciesMeta:
       prisma:
+        optional: true
+      typescript:
         optional: true
 
   '@prisma/debug@6.3.0':
@@ -1792,9 +1795,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@prisma/client@6.2.1(prisma@6.3.0(typescript@5.7.3))':
+  '@prisma/client@6.3.0(prisma@6.3.0(typescript@5.7.3))(typescript@5.7.3)':
     optionalDependencies:
       prisma: 6.3.0(typescript@5.7.3)
+      typescript: 5.7.3
 
   '@prisma/debug@6.3.0': {}
 
