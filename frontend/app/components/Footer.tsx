@@ -3,11 +3,11 @@ import Link from 'next/link';
 import { Lock } from 'lucide-react'
 
 export default function Footer() {
-    const { Github, Linkedin, Twitter, FileText, MessageCircle, Clipboard, Star } = LucideIcons;
+    const { Github, Linkedin, Twitter, FileText, MessageCircle } = LucideIcons;
     return (
-        <div className="border-t px-10 dark bg-gray-900 text-gray-50 border-purple-600/10 py-6 md:py-0" >
+        <div className="border-t px-20 dark bg-gray-900 text-gray-50 border-purple-600/10 py-6 md:py-0" >
             <div className="container px-4 md:px-6">
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 md:py-12">
+                <div className="grid gap-28 md:grid-cols-3 lg:grid-cols-3 md:py-12">
                     <div className="space-y-4">
                         <Link href="/" className="flex items-center space-x-2">
                             <span className="font-bold">Hold & Bet</span>
@@ -17,14 +17,6 @@ export default function Footer() {
                         </p>
                     </div>
                     {[
-                        {
-                            title: "Quick Links",
-                            links: [
-                                { href: "#features", label: "Features", icon: <Star size={18} strokeWidth={1}/> },
-                                { href: "#benefits", label: "Benefits", icon: <Clipboard size={18} strokeWidth={1} />},
-                                { href: "#faq", label: "FAQ", icon: <FileText size={18} strokeWidth={1} /> }
-                            ]
-                        },
                         {
                             title: "Legal",
                             links: [

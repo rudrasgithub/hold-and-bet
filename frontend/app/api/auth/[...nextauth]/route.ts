@@ -1,15 +1,57 @@
-import NextAuth from "next-auth"
-import GoogleProvider from 'next-auth/providers/google'
+import NextAuth from "next-auth";
+import GoogleProvider from 'next-auth/providers/google';
+import axios from 'axios';
+import crypto from 'crypto';
+
+const generateRandomPassword = (length: number): string => {
+  return crypto.randomBytes(length).toString('hex'); // Generates a random password
+};
 
 const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? ""
-    })
-  ]
-})
-console.log(process.env.GOOGLE_CLIENT_ID);
-console.log(process.env.GOOGLE_CLIENT_SECRET);
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
+  ],
+  secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    async signIn({ user }) {
+      console.log(user);
+      try {
+        const randomPassword = generateRandomPassword(8);
 
-export { handler as GET, handler as POST }
+        const response = await axios.post('http://localhost:5000/api/register', {
+          email: user.email,
+          password: randomPassword,
+          name: user.name,
+          image: user.image,
+        });
+
+        const { usertoken } = response.data;
+        
+        user.token = usertoken;
+
+        return true;
+      } catch (error) {
+        console.error('Error signing in:', error);
+        return false;
+      }
+    },
+    async jwt({ token, user }) {
+      if (user && user.token) {
+        token.authToken = user.token;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token.authToken) {
+        session.user.token = token.authToken as string;
+      }
+      return session;
+    },
+  },
+});
+
+export { handler as GET, handler as POST };

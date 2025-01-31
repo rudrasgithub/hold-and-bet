@@ -1,53 +1,60 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  wallet    Wallet[]
-  games     Game[]
-  createdAt DateTime @default(now())
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  name         String?
+  image        String?
+  wallet       Wallet[]
+  games        Game[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
 }
 
 model Wallet {
-  id           Int           @id @default(autoincrement())
-  balance      Float         @default(0.0)
-  userId       Int           @unique
-  User         User          @relation(fields: [userId], references: [id])
+  id           String        @id @default(uuid())
+  balance      Int           @default(500)
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
 }
 
 model Game {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  User      User     @relation(fields: [userId], references: [id])
-  status    gameType
-  bets      Json
-  createdAt DateTime @default(now())
+  id             String        @id @default(uuid())
+  userId         String
+  User           User          @relation(fields: [userId], references: [id])
+  status         gameType      @default(Active)
+  outcome        gameOutcome   @default(None)
+  bets           Json
+  generatedCards Json
+  holdedCard     holdedType    @default(None)
+  transaction    Transaction[]
+  createdAt      DateTime      @default(now())
+  updatedAT      DateTime      @updatedAt
 }
 
 model Transaction {
-  id        String          @id @default(uuid())
-  amount    Float
+  id        String            @id @default(uuid())
+  amount    Int
   type      transactionType
-  walletId  Int
-  Wallet    Wallet          @relation(fields: [walletId], references: [id])
-  createdAt DateTime        @default(now())
+  status    transactionStatus @default(Pending)
+  userId    String
+  User      User              @relation(fields: [userId], references: [id])
+  walletId  String
+  Wallet    Wallet            @relation(fields: [walletId], references: [id])
+  gameId    String?
+  game      Game?             @relation(fields: [gameId], references: [id])
+  updatedAt DateTime          @updatedAt
+  createdAt DateTime          @default(now())
 }
 
 enum transactionType {
@@ -60,4 +67,24 @@ enum transactionType {
 enum gameType {
   Completed
   Active
+}
+
+enum holdedType {
+  Card1
+  Card2
+  Card3
+  Card4
+  None
+}
+
+enum transactionStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum gameOutcome {
+  Won
+  Lost
+  None
 }

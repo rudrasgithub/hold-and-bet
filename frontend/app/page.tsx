@@ -2,20 +2,18 @@
 
 import { useSession } from "next-auth/react";
 import LandingPage from "./components/LandingPage";
-import Dashboard from "./components/Dashboard";
+import LandingSkeleton from "./components/LandingSkeleton";
 
 export default function Page() {
-  const session = useSession();
+    const { status } = useSession();
+    
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <LandingSkeleton />
+            </div>
+        );
+    }
 
-  return (
-    <div>
-      {!session.data?.user? <LandingPage /> : 
-        (
-          <div>
-            <Dashboard />
-          </div>
-        )
-      }
-    </div>
-  )
+    return <LandingPage />;
 }

@@ -13,17 +13,21 @@ import { Coins, Users, WalletCardsIcon as Cards, Lock, Wallet, Shield } from 'lu
 import Link from "next/link"
 import Image from "next/image"
 import * as LucideIcons from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { status } = useSession();
 
-  const { Play, Monitor, Headphones} = LucideIcons;
+  const { Play, Monitor, Headphones } = LucideIcons;
 
   return (
     <div
       className="flex flex-col min-h-screen transition-colors duration-300 dark bg-gray-900 text-gray-50"
     >
       <div className="flex-1">
-        <div className="relative py-20 md:py-20 overflow-hidden">
+        <div className="relative py-10 md:py-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-amber-500/10" />
           <div className="container px-4 md:px-6 relative">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
@@ -39,18 +43,18 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white" asChild>
-                    <Link href="/signup">
-                      <div className="flex justify-center items-center gap-2">
-                        <Play strokeWidth={2} size={10}/>
-                        <div>Play Now</div>
-                      </div>
-                    </Link>
+                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer" asChild>
+                    <div className="flex justify-center items-center gap-2">
+                      <Play strokeWidth={2} size={10} />
+                      <div onClick={() => {
+                        {status === 'authenticated' ? router.push('/dashboard') :  signIn("google", { callbackUrl: "/dashboard" });}
+                      }}>Play Now</div>
+                    </div>
                   </Button>
                   <Button variant="outline" size="lg" className="border-purple-600 text-purple-600 hover:bg-purple-50 hover:bg-purple-900/30" asChild>
                     <Link href="/try-demo">
                       <div className="flex justify-between items-center gap-2">
-                        <Monitor strokeWidth={2} size={24}/>
+                        <Monitor strokeWidth={2} size={24} />
                         <div>Try Demo</div>
                       </div>
                     </Link>
@@ -59,14 +63,14 @@ export default function LandingPage() {
               </div>
               <div className="relative flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-amber-500/20 rounded-lg blur-3xl" />
-                  <Image
-                    src="/landing-page.webp"
-                    width={700}
-                    height={600}
-                    alt="Hold & Bet Gameplay Preview"
-                    className="rounded-lg shadow-2xl relative"
-                    priority
-                  />
+                <Image
+                  src="/landing-page.jpg"
+                  width={700}
+                  height={600}
+                  alt="Hold & Bet Gameplay Preview"
+                  className="rounded-lg shadow-2xl relative"
+                  priority
+                />
               </div>
             </div>
           </div>
@@ -135,14 +139,14 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-[1fr_600px] lg:gap-20">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-amber-500/20 rounded-lg blur-3xl" />
-                <Image
-                  src="/landing-page2.webp"
-                  width={500}
-                  height={250}
-                  alt="Hold & Bet Benefits"
-                  className="relative rounded-lg shadow-xl"
-                />
-              </div>
+              <Image
+                src="/landing-page2.jpg"
+                width={500}
+                height={250}
+                alt="Hold & Bet Benefits"
+                className="relative rounded-lg shadow-xl"
+              />
+            </div>
             <div className="flex flex-col justify-center space-y-8">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
@@ -241,18 +245,21 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white" asChild>
-                <Link href="/signup">
-                  <div className="flex justify-center items-center gap-2">
-                    <Play size={24} strokeWidth={2}/>
-                    <span>Start Playing Now</span>
-                  </div>
-                </Link>
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer" asChild>
+                <div
+                  className="flex justify-center items-center gap-2"
+                  onClick={() => {
+                    { status === 'authenticated' ? router.push('/dashboard') :  signIn("google", { callbackUrl: "/dashboard" });}
+                  }}
+                >
+                  <Play size={24} strokeWidth={2} />
+                  <span>Start Playing Now</span>
+                </div>
               </Button>
               <Button variant="outline" size="lg" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30" asChild>
                 <Link href="/contact">
                   <div className="flex justify-center items-center gap-2">
-                    <Headphones size={24} strokeWidth={2}/>
+                    <Headphones size={24} strokeWidth={2} />
                     <span>Contact Support</span>
                   </div>
                 </Link>
