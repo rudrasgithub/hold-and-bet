@@ -28,29 +28,26 @@ router.get('/', authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0
                 image: true,
                 games: {
                     select: {
-                        outcome: true, // Fetching the outcome for each game
-                    }
+                        outcome: true,
+                    },
                 },
                 transactions: {
                     where: {
-                        type: 'BetWin'
+                        type: 'BetWin',
                     },
                     select: {
                         amount: true,
                     },
-                }
-            }
+                },
+            },
         });
         if (!profile) {
             res.status(404).json({ error: 'User not found' });
             return;
         }
-        // Calculate total matches and total wins
         const totalMatches = profile.games.length;
-        const totalWins = profile.games.filter(game => game.outcome === 'Won').length;
-        // Calculate total BetWin amount
+        const totalWins = profile.games.filter((game) => game.outcome === 'Won').length;
         const totalBetWinAmount = profile.transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
-        // Calculate winning rate
         const winningRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
         res.status(200).json({
             profile: {
@@ -60,7 +57,7 @@ router.get('/', authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0
                 totalMatches,
                 totalWins,
                 totalProfit: totalBetWinAmount / 2,
-                winningRate: winningRate.toFixed(1), // Return winning rate as a percentage with two decimal points
+                winningRate: winningRate.toFixed(1),
             },
         });
     }

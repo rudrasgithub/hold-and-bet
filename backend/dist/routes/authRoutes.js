@@ -17,51 +17,59 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prismaClient_1 = require("../config/prismaClient");
 const router = (0, express_1.Router)();
-router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, name, password, image } = req.body;
     try {
-        console.log("hitted");
+        console.log('hitted');
         const existingUser = yield prismaClient_1.prisma.user.findUnique({ where: { email } });
-        console.log("hitted");
+        console.log('hitted');
         if (existingUser) {
-            console.log("hitted");
+            console.log('hitted');
             const usertoken = jsonwebtoken_1.default.sign({ id: existingUser.id, email: existingUser.email }, process.env.JWT_SECRET, {
-                expiresIn: "7d",
+                expiresIn: '7d',
             });
-            console.log("hitted");
-            res.status(200).json({ message: "User already exists", user: existingUser, usertoken });
+            console.log('hitted');
+            res.status(200).json({
+                message: 'User already exists',
+                user: existingUser,
+                usertoken,
+            });
             return;
         }
-        console.log("hitted");
+        console.log('hitted');
         const newUser = yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log("transaction");
+            console.log('transaction');
             const createdUser = yield tx.user.create({
                 data: {
                     email,
                     name,
                     image,
-                    password: yield bcryptjs_1.default.hash(password, 10)
-                }
+                    password: yield bcryptjs_1.default.hash(password, 10),
+                },
             });
-            console.log("transactionended");
+            console.log('transactionended');
             yield tx.wallet.create({
                 data: {
-                    userId: createdUser.id
-                }
+                    userId: createdUser.id,
+                },
             });
-            console.log("hitted");
+            console.log('hitted');
             return createdUser;
         }));
-        console.log("hitted");
+        console.log('hitted');
         const usertoken = jsonwebtoken_1.default.sign({ id: newUser.id, email: newUser.email }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
+            expiresIn: '7d',
         });
-        console.log("done");
-        res.status(201).json({ message: "User registered successfully", user: newUser, usertoken });
+        console.log('done');
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: newUser,
+            usertoken,
+        });
         return;
     }
     catch (error) {
-        res.status(500).json({ error: "Server error", details: error });
+        res.status(500).json({ error: 'Server error', details: error });
         return;
     }
 }));

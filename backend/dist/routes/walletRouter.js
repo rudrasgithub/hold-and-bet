@@ -18,22 +18,23 @@ const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"
 const body_parser_1 = __importDefault(require("body-parser"));
 const stripeConfig_1 = require("../config/stripeConfig");
 const router = (0, express_1.Router)();
-router.get("/balance", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/balance', authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     try {
         const wallet = yield prismaClient_1.prisma.wallet.findUnique({ where: { userId } });
         if (!wallet) {
-            res.status(404).json({ error: "Wallet not found" });
+            res.status(404).json({ error: 'Wallet not found' });
             return;
         }
         res.status(200).json({ balance: wallet.balance });
     }
     catch (error) {
-        res.status(500).json({ error: "Failed to fetch wallet balance" });
+        console.log(error);
+        res.status(500).json({ error: 'Failed to fetch wallet balance' });
     }
 }));
-router.get("/", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/', authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     try {
@@ -42,26 +43,26 @@ router.get("/", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0
             include: {
                 transactions: {
                     orderBy: {
-                        'createdAt': 'desc'
-                    }
-                }
-            }
+                        createdAt: 'desc',
+                    },
+                },
+            },
         });
         if (!wallet) {
-            res.status(404).json({ error: "Wallet not found" });
+            res.status(404).json({ error: 'Wallet not found' });
             return;
         }
         res.status(200).json({
             wallet,
-            transactions: wallet.transactions
+            transactions: wallet.transactions,
         });
-        console.log("done");
+        console.log('done');
     }
     catch (error) {
-        res.status(500).json({ error: "Failed to fetch wallet", details: error });
+        res.status(500).json({ error: 'Failed to fetch wallet', details: error });
     }
 }));
-router.post("/withdraw", authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/withdraw', authMiddleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     const { amount } = req.body;
@@ -72,7 +73,6 @@ router.post("/withdraw", authMiddleware_1.default, (req, res) => __awaiter(void 
             return;
         }
         const newBalance = wallet.balance - amount;
-        // Create transaction and update wallet balance in a transaction
         const updatedWallet = yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             yield tx.wallet.update({
                 where: { userId },
@@ -84,7 +84,7 @@ router.post("/withdraw", authMiddleware_1.default, (req, res) => __awaiter(void 
                     walletId: wallet.id,
                     amount,
                     type: 'Withdrawal',
-                    status: 'Completed'
+                    status: 'Completed',
                 },
             });
             const updatedWalletData = yield tx.wallet.findUnique({
@@ -92,7 +92,7 @@ router.post("/withdraw", authMiddleware_1.default, (req, res) => __awaiter(void 
                 include: {
                     transactions: {
                         orderBy: {
-                            createdAt: 'desc', // Ensure the most recent transactions come first
+                            createdAt: 'desc',
                         },
                     },
                 },
@@ -100,7 +100,9 @@ router.post("/withdraw", authMiddleware_1.default, (req, res) => __awaiter(void 
             return updatedWalletData;
         }));
         if (!updatedWallet) {
-            res.status(500).json({ message: 'Failed to retrieve updated wallet data' });
+            res
+                .status(500)
+                .json({ message: 'Failed to retrieve updated wallet data' });
             return;
         }
         res.status(200).json({
@@ -119,11 +121,11 @@ router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }),
     try {
         const event = stripeConfig_1.stripe.webhooks.constructEvent(payload, sig, process.env.ENDPOINT_SECRET);
         switch (event.type) {
-            case 'payment_intent.succeeded':
-                const paymentSucceededIntent = event.data.object;
+            case 'payment_intent.succeeded': {
+                const paymentSucceededIntent = event.data
+                    .object;
                 const userIdSuccess = paymentSucceededIntent.metadata.userId;
                 const amountSuccess = paymentSucceededIntent.amount_received / 100;
-                // Handle successful payment intent
                 yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
                     const wallet = yield tx.wallet.update({
                         where: { userId: userIdSuccess },
@@ -135,21 +137,20 @@ router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }),
                             walletId: wallet.id,
                             amount: amountSuccess,
                             type: 'Deposit',
-                            status: 'Completed'
+                            status: 'Completed',
                         },
                     });
                 }));
                 console.log('Payment intent succeeded', paymentSucceededIntent);
                 res.status(200).json({ message: 'Payment successful' });
                 break;
-            case 'payment_intent.payment_failed':
+            }
+            case 'payment_intent.payment_failed': {
                 const paymentFailedIntent = event.data.object;
-                const userIdFailed = paymentFailedIntent.metadata.userId;
-                // Handle failed payment
                 console.log('Payment intent failed', paymentFailedIntent);
-                // Optionally, you could notify the user or retry payment
                 res.status(200).json({ message: 'Payment failed' });
                 break;
+            }
             default:
                 console.log(`Unhandled event type: ${event.type}`);
                 res.status(400).send();
