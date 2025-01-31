@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/config/lib.ts","./src/config/prismaClient.ts","./src/config/redisClient.ts","./src/config/stripeConfig.ts","./src/middlewares/authMiddleware.ts","./src/routes/authRoutes.ts","./src/routes/gameRouter.ts","./src/routes/userRoutes.ts","./src/routes/walletRouter.ts"],"version":"5.7.3"}

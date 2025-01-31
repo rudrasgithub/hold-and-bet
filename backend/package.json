@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "pnpm lint && pnpm format && ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
+    "build": "tsc -b",
     "start": "pm2 start dist/index.js --name hold-and-bet-backend",
     "lint": "eslint --fix \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\""
