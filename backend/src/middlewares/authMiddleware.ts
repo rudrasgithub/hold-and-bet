@@ -1,8 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+interface User {
+  id: string;
+  email: string;
+  role?: string;
+}
+
 export interface CustomRequest extends Request {
-  user?: { id: string } | JwtPayload;
+  user?: User;
 }
 
 export default function authenticate(
