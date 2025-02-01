@@ -1,13 +1,13 @@
-import { motion } from "framer-motion"
-import type { FC } from "react"
-import type { Card as CardType } from "@/lib/utils"
+import { Card } from "@/types";
+import { motion } from "framer-motion";
+import type { FC } from "react";
 
 interface PlayingCardProps {
-  card: CardType
-  isRevealed: boolean
-  isHeld: boolean
-  onClick: () => void
-  disabled: boolean
+  card: Card;
+  isRevealed: boolean;
+  isHeld: boolean;
+  onClick: () => void;
+  disabled: boolean;
 }
 
 const suitSymbols: { [key: string]: string } = {
@@ -15,17 +15,18 @@ const suitSymbols: { [key: string]: string } = {
   Diamonds: "♦️",
   Clubs: "♣️",
   Spades: "♠️",
-}
+};
 
 const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, disabled }) => {
-  console.log(isHeld)
   const cardClass = isHeld
     ? "transform scale-110 shadow-xl ring-4 ring-purple-400 animate-pulse"
-    : "transform scale-100"
+    : "transform scale-100";
+  console.log("isHeld", isHeld)
+  console.log("disabled", disabled);
+  // Disable pointer events and cursor for the held card
+  const cardStyles = disabled || isHeld ? "pointer-events-none cursor-not-allowed" : "cursor-pointer";
 
-  const cardStyles = disabled || isHeld ? "pointer-events-none cursor-not-allowed" : "cursor-pointer"
-
-  const suitColor = card.suit === "Hearts" || card.suit === "Diamonds" ? "text-red-600" : "text-black"
+  const suitColor = card.suit === "Hearts" || card.suit === "Diamonds" ? "text-red-600" : "text-black";
 
   return (
     <motion.div
@@ -40,30 +41,43 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
         stiffness: 400,
         damping: 10,
       }}
+      style={{ perspective: 1000 }}
     >
-      {isRevealed ? (
-        <div className={`absolute inset-0 flex flex-col justify-between p-4 ${suitColor}`}>
-          <div className="flex justify-between text-xl font-bold">
-            <span>{card.rank}</span>
-            <span>{suitSymbols[card.suit]}</span>
-          </div>
-          <div className="flex items-center justify-center text-4xl font-bold">
-            <span>{card.rank}</span>
-          </div>
-          <div className="flex justify-between text-xl font-bold">
-            <span>{suitSymbols[card.suit]}</span>
-          </div>
+      <motion.div
+        className={`absolute inset-0 flex flex-col justify-between p-4 bg-white rounded-xl ${suitColor}`}
+        style={{ backfaceVisibility: "hidden" }} // Prevents front from being visible when flipped
+      >
+        <div className="flex justify-between text-xl font-bold">
+          <span>{suitSymbols[card.suit]}</span>
+          <span>{suitSymbols[card.suit]}</span>
         </div>
-      ) : (
-        <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 text-white text-2xl font-bold">
+
+        <div className="flex items-center justify-center text-4xl font-bold">
+          <span>{card.value}</span>
+        </div>
+
+        <div className="flex justify-between text-xl font-bold">
+          <span>{suitSymbols[card.suit]}</span>
+          <span>{suitSymbols[card.suit]}</span>
+        </div>
+      </motion.div>
+
+      {/* Back of the card (symbol ? rotated when not revealed) */}
+      {!isRevealed && (
+        <motion.div
+          className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 text-white text-2xl font-bold rounded-xl"
+          style={{
+            backfaceVisibility: "visible", // Always keep back visible
+            transform: "rotateY(180deg)", // Rotate to keep `?` facing the user
+          }}
+        >
           ?
-        </div>
+        </motion.div>
       )}
 
       <div className="absolute inset-0 bg-transparent shadow-lg rounded-xl"></div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default PlayingCard
-
+export default PlayingCard;

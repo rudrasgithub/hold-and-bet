@@ -160,7 +160,7 @@ export default function LandingPage() {
                 {[
                   {
                     icon: Shield,
-                    title: "Secure and Fast Payouts",
+                    title: "Trustworthy, Secure and Fast Payouts",
                     description: "Powered by Stripe for maximum security and speed."
                   },
                   {

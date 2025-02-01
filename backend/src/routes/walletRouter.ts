@@ -75,7 +75,6 @@ router.post(
 
       const newBalance = wallet.balance - amount;
 
-      // Create transaction and update wallet balance in a transaction
       const updatedWallet = await prisma.$transaction(async (tx) => {
         await tx.wallet.update({
           where: { userId },
@@ -97,7 +96,7 @@ router.post(
           include: {
             transactions: {
               orderBy: {
-                createdAt: 'desc', // Ensure the most recent transactions come first
+                createdAt: 'desc',
               },
             },
           },

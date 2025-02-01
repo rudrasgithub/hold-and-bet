@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import PlayingCard from "../components/PlayingCard";
-import { BACKEND_URL } from "@/lib/utils";
 import axios from "axios";
-import { useSession } from "next-auth/react";
 import DashboardSkeleton from "../components/DashboardSkeleton";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import {
   setGameStarted,
   setCards,
@@ -21,18 +19,21 @@ import {
   setGameId,
   setLoadingCards,
   setGameRevealed,
-  setResultMessage,
   setResultAmount,
   setRevealedCardResults
 } from "@/store/slices/dashboardSlice";
-import { RootState } from "@/store";
+import { AppDispatch, RootState } from "@/store";
 import { updateBalance } from "@/store/slices/walletSlice";
-import { startNewGameThunk } from "@/store/slices/dashboardThunks"; 
+import { startNewGameThunk, placeBetThunk, revealCardsThunk } from "@/store/thunks/dashboardThunks";
+import GameRules from "../components/GameRules";
+import useAuth from "@/lib/useAuth";
 
-export default function Dashboard() {
-  const { data: session, status } = useSession();
-  const dispatch = useDispatch();
+const Dashboard = () => {
+  const { session, status } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
   const balance = useSelector((state: RootState) => state.wallet.balance);
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
   const {
     gameStarted,
     cards,
@@ -44,10 +45,9 @@ export default function Dashboard() {
     gameId,
     loadingCards,
     gameRevealed,
-    resultMessage,
     resultAmount,
     revealedCardResults
-  } = useSelector((state: RootState) => state.dashboard);
+  } = useSelector((state: RootState) => state.dashboard, shallowEqual);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -78,7 +78,7 @@ export default function Dashboard() {
   }
 
   const startGame = async () => {
-    if (Number(balance) === 0) {
+    if (balance === 0) {
       toast.error("Add more funds to start a game.");
       return;
     }
@@ -86,14 +86,26 @@ export default function Dashboard() {
     dispatch(setGameStarted(true));
     dispatch(setRevealedCards(new Array(4).fill(false)));
     dispatch(setHeldCardIndex(null));
-    dispatch(setBets({})); // reset bets as object
+    dispatch(setBets({}));
     dispatch(setGameRevealed(false));
-    dispatch(setResultAmount(null));
-    dispatch(setResultMessage(null));
-    dispatch(setCards([]));
+    dispatch(setResultAmount(0));
+    dispatch(setCards({}));
+    dispatch(setRevealedCardResults({}));
+    dispatch(setLoadingCards(false));
 
-    // Call the async thunk for starting a new game
-    dispatch(startNewGameThunk({ token: session?.user.token }));
+    if (session?.user.token) {
+      try {
+        const { game } = await dispatch(startNewGameThunk(session.user.token)).unwrap();
+        if (game.id) {
+          dispatch(setGameId(game.id));
+          toast.success("Game created!");
+        } else {
+          toast.error("Failed to start a new game.");
+        }
+      } catch (error) {
+        toast.error("Failed to start a new game.");
+      }
+    }
   };
 
   const holdCard = async (index: number) => {
@@ -125,18 +137,19 @@ export default function Dashboard() {
       toast.error("You don't have enough balance for this bet.");
       return;
     }
-
-    const combinedBets = { ...bets };
-    const cardKey = `Card${cardIndex + 1}`;
-    if (combinedBets[cardKey]) {
-      combinedBets[cardKey] += amount;
-    } else {
-      combinedBets[cardKey] = amount;
+    const cardId = `Card${cardIndex + 1}`;
+    const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
+    dispatch(setBets(updatedBets));
+    if (session?.user.token) {
+      try {
+        const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount }, token: session.user.token })).unwrap();
+        if (response) {
+          toast.success(`₹${amount} placed on ${cardId}`);
+        }
+      } catch (error) {
+        toast.error("Failed to place bet.");
+      }
     }
-    dispatch(setBets(combinedBets));
-
-    // Call the async thunk for placing a bet
-    dispatch(placeBetThunk(gameId, session?.user.token));
   };
 
   const handleCardClick = (index: number) => {
@@ -144,7 +157,7 @@ export default function Dashboard() {
       holdCard(index);
       return;
     }
-    placeBet(index, selectedBetAmount || 0);
+    placeBet(index, selectedBetAmount);
   };
 
   const revealCards = async () => {
@@ -155,8 +168,27 @@ export default function Dashboard() {
     dispatch(setRevealedCards(new Array(4).fill(true)));
     dispatch(setLoadingCards(true));
 
-    // Call the async thunk for revealing cards
-    dispatch(revealCardsThunk(gameId, session?.user.token));
+    if (session?.user.token) {
+      try {
+        const response = await dispatch(revealCardsThunk({ gameId: gameId as string, token: session.user.token })).unwrap();
+        const { totalEarnings, newBalance, generatedCards, cardResults } = response;
+
+        dispatch(setCards(generatedCards));
+        dispatch(setLoadingCards(false));
+        dispatch(setRevealedCardResults(cardResults));
+        dispatch(setResultAmount(totalEarnings));
+        dispatch(updateBalance(newBalance));
+        dispatch(setGameRevealed(true));
+
+        if (totalEarnings > 0) {
+          toast.success(`Congratulations! You won ₹${totalEarnings}.`);
+        } else {
+          toast.error("Better luck next time!");
+        }
+      } catch (error) {
+        toast.error("Failed to reveal cards.");
+      }
+    }
   };
 
   return (
@@ -194,39 +226,40 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-8">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {cards.length > 0
-                    ? cards.map((card, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <div className="text-center">
-                          <PlayingCard
-                            card={card}
-                            isRevealed={revealedCards[index]}
-                            isHeld={heldCardIndex === index}
-                            onClick={() => handleCardClick(index)}
-                            disabled={heldCardIndex !== null && (heldCardIndex === index || revealedCards[index])}
-                          />
-                          {heldCardIndex !== null && revealedCards[index] && (
-                            <p className="mt-3 text-semibold text-gray-300">
-                              {bets[`Card${index + 1}`] ? `Bet: ₹${bets[`Card${index + 1}`]}` : ""}
-                            </p>
-                          )}
-                          {!revealedCards[index] && !heldCardIndex && revealedCardResults && revealedCardResults[index] && (
-                            <p
-                              className={`mt-2 text-sm ${resultMessage === "You Won" ? "text-green-500" : "text-red-500"}`}
-                            >
-                              {revealedCardResults[index].bet
-                                ? `Gain: ₹${revealedCardResults[index].gain}`
-                                : `Loss: ₹${revealedCardResults[index].loss}`}
-                            </p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))
+                  {Object.keys(cards).length > 0
+                    ? Object.values(cards).map((card, index) => {
+                      const cardKey = `Card${index + 1}`;
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <div className="text-center">
+                            <PlayingCard
+                              card={card}
+                              isRevealed={revealedCards[index]}
+                              isHeld={heldCardIndex === index}
+                              onClick={() => handleCardClick(index)}
+                              disabled={heldCardIndex !== null && (heldCardIndex === index || revealedCards[index])}
+                            />
+                            {bets[cardKey] && (
+                              <div className="mt-3 text-gray-300">
+                                Bet: ₹{bets[cardKey]}
+                              </div>
+                            )}
+                            {revealedCards[index] && gameRevealed && revealedCardResults?.[cardKey] && (
+                              <div className={`text-sm font-bold ${revealedCardResults[cardKey].gain ? "text-green-500" : "text-red-500"}`}>
+                                {revealedCardResults[cardKey].gain
+                                  ? `Gain: ₹${revealedCardResults[cardKey].gain}`
+                                  : `Loss: ₹${revealedCardResults[cardKey].loss}`}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
                     : [1, 2, 3, 4].map((_, index) => (
                       <motion.div
                         key={index}
@@ -236,7 +269,7 @@ export default function Dashboard() {
                       >
                         <div className="text-center">
                           <PlayingCard
-                            card={{ suit: "Spades", rank: "?", value: 6 }}
+                            card={{ suit: "", value: "0" }}
                             isRevealed={false}
                             isHeld={false}
                             onClick={() => handleCardClick(index)}
@@ -247,13 +280,13 @@ export default function Dashboard() {
                     ))}
                 </div>
 
-                <div className="pt-10 flex justify-center gap-4">
+                <div className="pt-5 flex justify-center gap-4">
                   <Button
                     onClick={revealCards}
-                    disabled={Object.keys(bets).length === 0 || heldCardIndex === null || gameRevealed}
+                    disabled={Object.keys(bets).length === 0 || heldCardIndex === null || gameRevealed || loadingCards}
                     className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
                   >
-                    Reveal Cards
+                    {loadingCards ? "Revealing..." : "Reveal Cards"}
                   </Button>
                   <Button
                     onClick={startGame}
@@ -263,13 +296,13 @@ export default function Dashboard() {
                     New Game
                   </Button>
                 </div>
-                {resultMessage && resultAmount !== null && (
-                  <div
-                    className={`mt-6 text-lg font-bold text-center ${resultMessage === "You Won" ? "text-green-500" : "text-red-500"}`}
-                  >
-                    {resultMessage}: ₹{resultAmount}
+
+                {resultAmount !== 0 && (
+                  <div className={`mt-6 text-lg font-bold text-center ${resultAmount > 0 ? "text-green-500" : "text-red-500"}`}>
+                    {resultAmount > 0 ? `You Won: ₹${resultAmount}` : `You Lost: ₹${resultAmount}`}
                   </div>
                 )}
+
               </div>
             )}
           </div>
@@ -294,10 +327,8 @@ export default function Dashboard() {
               {[5, 10, 20, 50, 100, 200, 500].map((amount) => (
                 <Button
                   key={amount}
-                  defaultChecked
                   onClick={() => dispatch(setSelectedBetAmount(amount))}
-                  className={`w-12 h-12 rounded-full ${selectedBetAmount === amount ? "bg-purple-600" : "bg-purple-400"
-                    } text-white`}
+                  className={`w-12 h-12 rounded-full ${selectedBetAmount === amount ? "bg-purple-600" : "bg-purple-400"} text-white`}
                 >
                   ₹{amount}
                 </Button>
@@ -305,7 +336,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        <GameRules />
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

@@ -15,7 +15,6 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { NavSkeleton } from "./NavSkeleton";
-import { useState } from "react";
 
 export const Navbar = () => {
     const { data: sessionData, status } = useSession();  // Destructure data and status
@@ -34,9 +33,9 @@ export const Navbar = () => {
                 Hold & Bet
             </div>
             <div>
-                {status === "loading" ? (  // Check session status
+                {status === "loading" ? (
                     <NavSkeleton className="w-10 h-10 rounded-full" />
-                ) : sessionData?.user ? (  // Ensure sessionData and user exist
+                ) : sessionData?.user ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger className="focus:outline-none">
                             <Image
@@ -77,7 +76,9 @@ export const Navbar = () => {
                             <DropdownMenuItem
                                 onClick={async () => {
                                     await signOut({ redirect: false });
-                                    router.replace('/');
+                                    setTimeout(() => {
+                                        router.replace('/');
+                                    }, 500);
                                 }}
                                 className="hover:bg-red-300 cursor-pointer"
                             >

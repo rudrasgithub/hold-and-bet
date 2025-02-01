@@ -1,33 +1,34 @@
+import { CardType, RevealedCardResult } from "@/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface DashboardState {
   gameStarted: boolean;
   gameId: string | null;
-  cards: any[];
+  cards: Record<string, CardType>;
   revealedCards: boolean[];
   heldCardIndex: number | null;
   bets: Record<string, number>;
   selectedBetAmount: number;
   greeting: string;
   gameRevealed: boolean;
-  resultMessage: string | null;
-  resultAmount: number | null;
-  loadingCards: boolean; // ✅ Add loading state
+  resultAmount: number;
+  loadingCards: boolean;
+  revealedCardResults: RevealedCardResult | null; // ✅ Corrected type
 }
 
 const initialState: DashboardState = {
   gameStarted: false,
   gameId: null,
-  cards: [],
+  cards: {},
   revealedCards: [false, false, false, false],
   heldCardIndex: null,
   bets: {},
-  selectedBetAmount: 10,
+  selectedBetAmount: 100,
   greeting: "",
   gameRevealed: false,
-  resultMessage: null,
-  resultAmount: null,
-  loadingCards: false, // ✅ Add loading state
+  resultAmount: 0,
+  loadingCards: false,
+  revealedCardResults: null, // ✅ Corrected default state
 };
 
 const dashboardSlice = createSlice({
@@ -40,7 +41,7 @@ const dashboardSlice = createSlice({
     setGameId: (state, action: PayloadAction<string>) => {
       state.gameId = action.payload;
     },
-    setCards: (state, action: PayloadAction<any[]>) => {
+    setCards: (state, action: PayloadAction<Record<string, CardType>>) => {
       state.cards = action.payload;
     },
     setRevealedCards: (state, action: PayloadAction<boolean[]>) => {
@@ -61,15 +62,15 @@ const dashboardSlice = createSlice({
     setGameRevealed: (state, action: PayloadAction<boolean>) => {
       state.gameRevealed = action.payload;
     },
-    setResultMessage: (state, action: PayloadAction<string | null>) => {
-      state.resultMessage = action.payload;
-    },
-    setResultAmount: (state, action: PayloadAction<number | null>) => {
+    setResultAmount: (state, action: PayloadAction<number>) => {
       state.resultAmount = action.payload;
     },
-    setLoadingCards: (state, action: PayloadAction<boolean>) => { 
-      state.loadingCards = action.payload; 
-    }, // ✅ Added reducer
+    setLoadingCards: (state, action: PayloadAction<boolean>) => {
+      state.loadingCards = action.payload;
+    },
+    setRevealedCardResults: (state, action: PayloadAction<RevealedCardResult | null>) => {
+      state.revealedCardResults = action.payload;
+    },
   },
 });
 
@@ -83,9 +84,9 @@ export const {
   setSelectedBetAmount,
   setGreeting,
   setGameRevealed,
-  setResultMessage,
   setResultAmount,
-  setLoadingCards, // ✅ Exported
+  setLoadingCards,
+  setRevealedCardResults,
 } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

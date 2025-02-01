@@ -150,7 +150,7 @@ router.post(
     const gameId = req.params.gameId;
     console.log(gameId);
     const { bets } = req.body;
-    console.log(bets);
+    console.log('bets', bets);
     const userId = req.user?.id;
 
     try {
@@ -220,6 +220,7 @@ router.post(
           id: gameState.id,
           userId: gameState.userId,
           status: gameState.status,
+          bets: gameState.bets,
           createdAt: gameState.createdAt,
           updatedAt: gameState.updatedAT,
         },
@@ -338,7 +339,7 @@ router.post(
       res.status(200).json({
         message: 'Game revealed successfully',
         totalEarnings,
-        walletBalance: newBalance,
+        newBalance,
         generatedCards,
         cardResults,
       });

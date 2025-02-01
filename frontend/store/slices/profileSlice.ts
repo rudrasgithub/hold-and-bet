@@ -1,47 +1,14 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BACKEND_URL } from "@/lib/utils";
+import { ProfileState } from "@/types";
+import { createSlice } from "@reduxjs/toolkit";
+import { fetchUserProfile } from "../thunks/profileThunks";
 
-export interface UserProfile {
-  name: string;
-  image: string;
-  totalMatches: number;
-  totalWins: number;
-  totalProfit: number;
-  winningRate: number;
-}
-
-interface ProfileState {
-  userData: UserProfile | null;
-  loading: boolean;
-  error: string | null;
-}
-
-// Initial state
 const initialState: ProfileState = {
   userData: null,
   loading: false,
   error: null,
 };
 
-// Async thunk for fetching profile data
-export const fetchUserProfile = createAsyncThunk(
-  "profile/fetchUserProfile",
-  async (token: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data.profile;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch user profile");
-    }
-  }
-);
 
-// Profile slice
 const profileSlice = createSlice({
   name: "profile",
   initialState,

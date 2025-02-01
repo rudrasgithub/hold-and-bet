@@ -4,8 +4,9 @@ import axios from 'axios';
 import crypto from 'crypto';
 
 const generateRandomPassword = (length: number): string => {
-  return crypto.randomBytes(length).toString('hex'); // Generates a random password
+  return crypto.randomBytes(length).toString('hex');
 };
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const handler = NextAuth({
   providers: [
@@ -21,7 +22,7 @@ const handler = NextAuth({
       try {
         const randomPassword = generateRandomPassword(8);
 
-        const response = await axios.post('http://localhost:5000/api/register', {
+        const response = await axios.post(`${BACKEND_URL}/register`, {
           email: user.email,
           password: randomPassword,
           name: user.name,
@@ -29,7 +30,7 @@ const handler = NextAuth({
         });
 
         const { usertoken } = response.data;
-        
+
         user.token = usertoken;
 
         return true;

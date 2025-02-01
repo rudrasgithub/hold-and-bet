@@ -1,8 +1,6 @@
-// wallet/page.tsx
 'use client';
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, CheckCircle2, Clock } from "lucide-react";
@@ -11,17 +9,22 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BACKEND_URL, paymentLink } from "@/lib/utils";
 import { WalletSkeleton } from "../components/WalletSkeleton";
 import toast from 'react-hot-toast'; // Import toast
 import { parseISO, format } from 'date-fns';
 import { useDispatch, useSelector } from "react-redux";
-import { setWalletData, addTransaction, updateBalance, Transaction } from "@/store/slices/walletSlice"; // Import actions
+import { setWalletData, addTransaction, updateBalance } from "@/store/slices/walletSlice"; // Import actions
+import { Transaction } from "@/types";
+import useAuth from "@/lib/useAuth";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
 
 const WalletPage = () => {
-  const { data: session, status } = useSession();
+  const { session, status } = useAuth();
   const dispatch = useDispatch();
-  const walletData = useSelector((state: any) => state.wallet); // Access wallet state from Redux
+  const walletData = useSelector((state: any) => state.wallet); 
+  const [isWithdrawing, setisWithdrawing] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0); // To store the withdrawal amount
@@ -29,7 +32,7 @@ const WalletPage = () => {
   const itemsPerPage = 5;
 
   const fetchWalletData = async () => {
-    if (session?.user?.token) {
+    if (session?.user.token) {
       try {
         const response = await axios.get(`${BACKEND_URL}/wallet`, {
           headers: {
@@ -38,7 +41,6 @@ const WalletPage = () => {
         });
         const { wallet, transactions } = response.data;
 
-        // Sort transactions in descending order by updatedAt
         const sortedTransactions = transactions.sort((a: Transaction, b: Transaction) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
@@ -75,8 +77,12 @@ const WalletPage = () => {
       toast.error("Amount must be greater than 0!");
       return;
     }
+    if (!session?.user?.token) {  // ✅ Added check to prevent errors
+      toast.error("You must be logged in to withdraw.");
+      return;
+    }
+
     try {
-      // Call the backend API to process the withdrawal
       const response = await axios.post(
         `${BACKEND_URL}/wallet/withdraw`,
         { amount: withdrawAmount },
@@ -87,19 +93,12 @@ const WalletPage = () => {
         }
       );
 
-      // Assuming the backend response contains the updated wallet balance and transactions
       const { newBalance, transactions: updatedTransactions } = response.data;
 
-      // Update wallet balance
       dispatch(updateBalance(newBalance));
-
-      // Add new transactions and keep the previous ones
-      updatedTransactions.forEach((transaction: any) => dispatch(addTransaction(transaction)));
-
-      // Show success toast
+      updatedTransactions.forEach((transaction: Transaction) => dispatch(addTransaction(transaction)));
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
-
-      // Close the dialog
+      setisWithdrawing(false);
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error processing withdrawal:", error);
@@ -138,7 +137,7 @@ const WalletPage = () => {
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                   onClick={() => {
-                    window.location.href = paymentLink;
+                    window.location.href = paymentlink as string;
                   }}
                 >
                   <ArrowUpCircle className="h-4 w-4" />
@@ -171,9 +170,12 @@ const WalletPage = () => {
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
                         disabled={loading}
-                        onClick={handleWithdrawal}
+                        onClick={() => {
+                          setisWithdrawing(true)
+                          handleWithdrawal();
+                        }}
                       >
-                        Request Withdrawal
+                        {!isWithdrawing ? "Request Withdrawal" : "Processing" }
                       </Button>
                     </div>
                   </DialogContent>
@@ -182,7 +184,6 @@ const WalletPage = () => {
             </CardContent>
           </Card>
 
-          {/* Transaction History */}
           <Card className="bg-gray-800 border-purple-600/20">
             <CardHeader>
               <CardTitle className="text-gray-200">Transaction History</CardTitle>
@@ -239,7 +240,6 @@ const WalletPage = () => {
                 </TableBody>
               </Table>
 
-              {/* Pagination */}
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
