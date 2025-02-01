@@ -40,7 +40,7 @@ app.use('/api/wallet', walletRouter);
 app.use('/api', authRouter);
 app.use('/api/user', userRouter);
 
-const PORT = process.env.PORT || 5000; // Set default to 5000 if no port is defined
+const PORT = process.env.PORT || 8080; // Set default to 5000 if no port is defined
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -133,7 +133,7 @@ router.post('/:gameId/bet', authMiddleware_1.default, (req, res) => __awaiter(vo
     const gameId = req.params.gameId;
     console.log(gameId);
     const { bets } = req.body;
-    console.log(bets);
+    console.log('bets', bets);
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     try {
         const gameState = JSON.parse((yield redisClient_1.redisClient.get(`game:${gameId}`)) || '{}');
@@ -190,6 +190,7 @@ router.post('/:gameId/bet', authMiddleware_1.default, (req, res) => __awaiter(vo
                 id: gameState.id,
                 userId: gameState.userId,
                 status: gameState.status,
+                bets: gameState.bets,
                 createdAt: gameState.createdAt,
                 updatedAt: gameState.updatedAT,
             },
@@ -279,7 +280,7 @@ router.post('/:gameId/reveal', authMiddleware_1.default, (req, res) => __awaiter
         res.status(200).json({
             message: 'Game revealed successfully',
             totalEarnings,
-            walletBalance: newBalance,
+            newBalance,
             generatedCards,
             cardResults,
         });
