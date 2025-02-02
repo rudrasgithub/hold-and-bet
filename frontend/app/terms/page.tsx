@@ -16,10 +16,10 @@ export default function TermsOfService() {
 
       <h3 className="text-2xl font-semibold text-purple-300 mb-2">2. Game Rules</h3>
       <ul className="list-disc pl-5 space-y-2">
-        <li>"Hold&Bet: The Card Clash" is a game of strategy, skill, and chance.</li>
+        <li>Hold&Bet: The Card Clash is a game of strategy, skill, and chance.</li>
         <li>All in-game transactions, including bets, will be tracked by the Game and are non-transferable.</li>
         <li>The outcome of any game session is determined by a combination of factors, including random number generation.</li>
-        <li className="font-semibold">At Hold&Bet, we believe in creating a transparent, fair, and fun gaming experience. We continuously work towards enhancing the security and fairness of the game. By playing Hold&Bet, you're assured of a fair and enjoyable gaming experience.</li>
+        <li className="font-semibold">At Hold&Bet, we believe in creating a transparent, fair, and fun gaming experience. We continuously work towards enhancing the security and fairness of the game. By playing Hold&Bet, you are assured of a fair and enjoyable gaming experience.</li>
       </ul>
 
       <h3 className="text-2xl font-semibold text-purple-300 mb-2">3. Payments and Refunds</h3>
@@ -31,7 +31,7 @@ export default function TermsOfService() {
 
       <h3 className="text-2xl font-semibold text-purple-300 mb-2">4. Limitation of Liability</h3>
       <ul className="list-disc pl-5 space-y-2">
-        <li>The Game is provided "as is" and we do not guarantee its functionality or availability at all times.</li>
+        <li>The Game is provided as is and we do not guarantee its functionality or availability at all times.</li>
         <li>We will not be liable for any losses, damages, or liabilities resulting from interruptions, bugs, or errors in the Game.</li>
       </ul>
 

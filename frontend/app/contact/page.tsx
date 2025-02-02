@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -10,7 +10,7 @@ export default function ContactUs() {
     message: '',
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: string; value: string; }; }) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -18,7 +18,7 @@ export default function ContactUs() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
     toast.success('Your message has been sent successfully!');
@@ -88,7 +88,6 @@ export default function ContactUs() {
             </form>
           </div>
 
-          {/* Contact Information */}
           <div className="bg-gray-700 p-6 rounded-xl shadow-lg">
             <h3 className="text-3xl font-semibold text-center text-blue-400 mb-3">Our Contact Information</h3>
             <p className="text-lg mb-2">
@@ -107,7 +106,6 @@ export default function ContactUs() {
               <strong>Business Hours:</strong> Mon - Sun, 00:00 AM - 11:59 PM
             </p>
 
-            {/* Map Section */}
             <div className="mt-2">
               <h4 className="text-xl text-center text-purple-400 mb-4">Find Us on the Map</h4>
               <div className="relative pt-[56.25%]">

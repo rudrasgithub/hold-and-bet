@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -65,13 +65,14 @@ const Dashboard = () => {
           });
           dispatch(updateBalance(response.data.balance));
         } catch (error) {
+          console.log(error)
           toast.error("Failed to fetch wallet balance");
         }
       };
 
       fetchBalance();
     }
-  }, [session?.user.token, dispatch]);
+  }, [session?.user.token, dispatch, BACKEND_URL]);
 
   if (status === "loading") {
     return <DashboardSkeleton />;
@@ -103,6 +104,7 @@ const Dashboard = () => {
           toast.error("Failed to start a new game.");
         }
       } catch (error) {
+        console.log(error)
         toast.error("Failed to start a new game.");
       }
     }
@@ -120,6 +122,7 @@ const Dashboard = () => {
       dispatch(setHeldCardIndex(index));
       toast.success(`Card ${index + 1} is now held.`);
     } catch (error) {
+      console.log(error)
       toast.error("Failed to hold card.");
     }
   };
@@ -147,6 +150,7 @@ const Dashboard = () => {
           toast.success(`₹${amount} placed on ${cardId}`);
         }
       } catch (error) {
+        console.log(error)
         toast.error("Failed to place bet.");
       }
     }
@@ -186,6 +190,7 @@ const Dashboard = () => {
           toast.error("Better luck next time!");
         }
       } catch (error) {
+        console.log(error)
         toast.error("Failed to reveal cards.");
       }
     }
@@ -314,7 +319,7 @@ const Dashboard = () => {
               <ul className="list-disc pl-4 space-y-1">
                 <li>Hold a card, must hold one card before betting</li>
                 <li>Choose bet amount, click on a card to place a bet</li>
-                <li>Click "Reveal Cards" to see the results!</li>
+                <li>Click Reveal Cards to see the results!</li>
               </ul>
               <hr />
             </div>

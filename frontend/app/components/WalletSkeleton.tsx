@@ -5,7 +5,6 @@ export const WalletSkeleton = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-6 space-y-8">
-        {/* Skeleton for Balance Card */}
         <Card className="bg-gray-800 border-purple-600/20">
           <CardHeader>
             <CardTitle className="text-gray-400">
@@ -21,7 +20,6 @@ export const WalletSkeleton = () => {
           </CardContent>
         </Card>
 
-        {/* Skeleton for Transaction History */}
         <Card className="bg-gray-800 border-purple-600/20">
           <CardHeader>
             <CardTitle className="text-gray-400">

@@ -43,14 +43,17 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer" asChild>
+                  <Button
+                    size="lg"
+                    className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
+                    onClick={() => status === 'authenticated' ? router.push('/dashboard') : signIn("google", { callbackUrl: "/dashboard" })}
+                  >
                     <div className="flex justify-center items-center gap-2">
                       <Play strokeWidth={2} size={10} />
-                      <div onClick={() => {
-                        {status === 'authenticated' ? router.push('/dashboard') :  signIn("google", { callbackUrl: "/dashboard" });}
-                      }}>Play Now</div>
+                      <span>Play Now</span>
                     </div>
                   </Button>
+
                   <Button variant="outline" size="lg" className="border-purple-600 text-purple-600 hover:bg-purple-50 hover:bg-purple-900/30" asChild>
                     <Link href="/try-demo">
                       <div className="flex justify-between items-center gap-2">
@@ -245,17 +248,24 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer" asChild>
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
+                asChild
+              >
                 <div
                   className="flex justify-center items-center gap-2"
-                  onClick={() => {
-                    { status === 'authenticated' ? router.push('/dashboard') :  signIn("google", { callbackUrl: "/dashboard" });}
-                  }}
+                  onClick={() =>
+                    status === "authenticated"
+                      ? router.push("/dashboard")
+                      : signIn("google", { callbackUrl: "/dashboard" })
+                  }
                 >
                   <Play size={24} strokeWidth={2} />
                   <span>Start Playing Now</span>
                 </div>
               </Button>
+
               <Button variant="outline" size="lg" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30" asChild>
                 <Link href="/contact">
                   <div className="flex justify-center items-center gap-2">

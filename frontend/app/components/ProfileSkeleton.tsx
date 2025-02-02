@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 
 export function ProfileSkeleton() {
@@ -6,7 +6,7 @@ export function ProfileSkeleton() {
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-6">
         <div className="space-y-8 animate-pulse">
-          {/* Profile Header Skeleton */}
+          
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="h-32 w-32 bg-gray-700" />
             <div className="text-center space-y-2">
@@ -15,7 +15,6 @@ export function ProfileSkeleton() {
             </div>
           </div>
 
-          {/* Stats Grid Skeleton */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, index) => (
               <Card key={index} className="bg-gray-800">

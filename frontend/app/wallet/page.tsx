@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, CheckCircle2, Clock } from "lucide-react";
@@ -10,12 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WalletSkeleton } from "../components/WalletSkeleton";
-import toast from 'react-hot-toast'; // Import toast
+import toast from 'react-hot-toast';
 import { parseISO, format } from 'date-fns';
 import { useDispatch, useSelector } from "react-redux";
-import { setWalletData, addTransaction, updateBalance } from "@/store/slices/walletSlice"; // Import actions
+import { setWalletData, addTransaction, updateBalance } from "@/store/slices/walletSlice";
 import { Transaction } from "@/types";
 import useAuth from "@/lib/useAuth";
+import { RootState } from "@/store";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
@@ -23,15 +24,15 @@ const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
 const WalletPage = () => {
   const { session, status } = useAuth();
   const dispatch = useDispatch();
-  const walletData = useSelector((state: any) => state.wallet); 
+  const walletData = useSelector((state: RootState) => state.wallet);
   const [isWithdrawing, setisWithdrawing] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [withdrawAmount, setWithdrawAmount] = useState<number>(0); // To store the withdrawal amount
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to control dialog visibility
+  const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const itemsPerPage = 5;
 
-  const fetchWalletData = async () => {
+  const fetchWalletData = useCallback(async () => {
     if (session?.user.token) {
       try {
         const response = await axios.get(`${BACKEND_URL}/wallet`, {
@@ -41,8 +42,9 @@ const WalletPage = () => {
         });
         const { wallet, transactions } = response.data;
 
-        const sortedTransactions = transactions.sort((a: Transaction, b: Transaction) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        const sortedTransactions = transactions.sort(
+          (a: Transaction, b: Transaction) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
 
         dispatch(setWalletData({ balance: wallet.balance, transactions: sortedTransactions }));
@@ -55,19 +57,20 @@ const WalletPage = () => {
       console.log("No token found in session");
       setLoading(false);
     }
-  };
+  }, [session?.user.token, dispatch]); // Add dependencies
 
   useEffect(() => {
     if (status === "authenticated") {
       fetchWalletData();
     }
-  }, [status]);
+  }, [status, fetchWalletData]); // Include fetchWalletData in the dependency array
 
   const formatTimestamp = (date: string) => {
     try {
       const parsedDate = parseISO(date); // Parse the ISO string to a Date object
       return format(parsedDate, 'MMM dd, yyyy, hh:mm:ss a'); // Format the date to your preferred format
     } catch (error) {
+      console.log(error)
       return "Invalid Date"; // If there's an error, return "Invalid Date"
     }
   };
@@ -175,7 +178,7 @@ const WalletPage = () => {
                           handleWithdrawal();
                         }}
                       >
-                        {!isWithdrawing ? "Request Withdrawal" : "Processing" }
+                        {!isWithdrawing ? "Request Withdrawal" : "Processing"}
                       </Button>
                     </div>
                   </DialogContent>
