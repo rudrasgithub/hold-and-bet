@@ -95,8 +95,6 @@ const Dashboard = () => {
     dispatch(setLoadingCards(false));
     
     if (session?.user.token) {
-      // toast.success("Please wait until game starts!!!")
-      toast.success("Game")
       try {
         const { game } = await dispatch(startNewGameThunk(session.user.token)).unwrap();
         if (game.id) {
