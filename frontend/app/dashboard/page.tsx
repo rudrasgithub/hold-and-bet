@@ -83,7 +83,7 @@ const Dashboard = () => {
       toast.error("Add more funds to start a game.");
       return;
     }
-
+    toast.success("Please wait until game starts!!!")
     dispatch(setGameStarted(true));
     dispatch(setRevealedCards(new Array(4).fill(false)));
     dispatch(setHeldCardIndex(null));
@@ -93,8 +93,10 @@ const Dashboard = () => {
     dispatch(setCards({}));
     dispatch(setRevealedCardResults({}));
     dispatch(setLoadingCards(false));
-
+    
     if (session?.user.token) {
+      // toast.success("Please wait until game starts!!!")
+      toast.success("Game")
       try {
         const { game } = await dispatch(startNewGameThunk(session.user.token)).unwrap();
         if (game.id) {
@@ -123,7 +125,7 @@ const Dashboard = () => {
       toast.success(`Card ${index + 1} is now held.`);
     } catch (error) {
       console.log(error)
-      toast.error("Failed to hold card.");
+      toast.error("Please, try again.");
     }
   };
 
@@ -247,7 +249,7 @@ const Dashboard = () => {
                               isRevealed={revealedCards[index]}
                               isHeld={heldCardIndex === index}
                               onClick={() => handleCardClick(index)}
-                              disabled={heldCardIndex !== null && (heldCardIndex === index || revealedCards[index])}
+                              disabled={heldCardIndex === null || heldCardIndex === index || revealedCards[index]}
                             />
                             {bets[cardKey] && (
                               <div className="mt-3 text-gray-300">
