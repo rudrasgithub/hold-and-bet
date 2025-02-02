@@ -17,7 +17,7 @@ const app = express();
 // Use helmet for security headers
 app.use(helmet());
 
-const allowedOrigins = process.env.FRONTEND_URL; // Set your production frontend URL here
+const allowedOrigins = process.env.FRONTEND_URL;
 app.use(
   cors({
     origin: allowedOrigins,
@@ -40,7 +40,7 @@ app.use('/api/wallet', walletRouter);
 app.use('/api', authRouter);
 app.use('/api/user', userRouter);
 
-const PORT = process.env.PORT || 8080; // Set default to 5000 if no port is defined
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

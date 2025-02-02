@@ -33,7 +33,7 @@ app.use('/api/games', gameRouter_1.default);
 app.use('/api/wallet', walletRouter_1.default);
 app.use('/api', authRoutes_1.default);
 app.use('/api/user', userRoutes_1.default);
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

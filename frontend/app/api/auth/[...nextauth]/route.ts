@@ -21,7 +21,7 @@ const handler = NextAuth({
       console.log(user);
       try {
         const randomPassword = generateRandomPassword(8);
-
+        console.log("rudra")
         const response = await axios.post(`${BACKEND_URL}/register`, {
           email: user.email,
           password: randomPassword,
