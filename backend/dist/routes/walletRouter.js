@@ -115,50 +115,85 @@ router.post('/withdraw', authMiddleware_1.default, (req, res) => __awaiter(void 
         res.status(500).json({ message: 'Failed to process withdrawal' });
     }
 }));
-router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const sig = req.headers['stripe-signature'];
+router.post("/webhook", body_parser_1.default.raw({ type: "application/json" }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const sig = req.headers["stripe-signature"];
     const payload = req.body;
     try {
-        const event = stripeConfig_1.stripe.webhooks.constructEvent(payload, sig, process.env.ENDPOINT_SECRET);
+        const event = stripeConfig_1.stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
         switch (event.type) {
-            case 'payment_intent.succeeded': {
-                const paymentSucceededIntent = event.data
-                    .object;
-                const userIdSuccess = paymentSucceededIntent.metadata.userId;
-                const amountSuccess = paymentSucceededIntent.amount_received / 100;
+            case "checkout.session.completed": {
+                const session = event.data.object;
+                const userId = (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.userId;
+                const amountPaid = (session.amount_total || 0) / 100;
+                if (!userId) {
+                    console.error("❌ Missing userId in session metadata");
+                    res.status(400).json({ error: "Missing userId in metadata" });
+                    return;
+                }
+                console.log(`✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`);
                 yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
                     const wallet = yield tx.wallet.update({
-                        where: { userId: userIdSuccess },
-                        data: { balance: { increment: amountSuccess } },
+                        where: { userId },
+                        data: { balance: { increment: amountPaid } },
                     });
                     yield tx.transaction.create({
                         data: {
-                            userId: userIdSuccess,
+                            userId,
                             walletId: wallet.id,
-                            amount: amountSuccess,
-                            type: 'Deposit',
-                            status: 'Completed',
+                            amount: amountPaid,
+                            type: "Deposit",
+                            status: "Completed",
                         },
                     });
                 }));
-                console.log('Payment intent succeeded', paymentSucceededIntent);
-                res.status(200).json({ message: 'Payment successful' });
-                break;
+                res.status(200).json({ message: "Checkout session processed successfully" });
+                return;
             }
-            case 'payment_intent.payment_failed': {
-                const paymentFailedIntent = event.data.object;
-                console.log('Payment intent failed', paymentFailedIntent);
-                res.status(200).json({ message: 'Payment failed' });
-                break;
+            case "payment_intent.succeeded": {
+                const paymentIntent = event.data.object;
+                const userId = (_b = paymentIntent.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                const amountPaid = paymentIntent.amount_received / 100;
+                if (!userId) {
+                    console.error("❌ Missing userId in payment intent metadata");
+                    res.status(400).json({ error: "Missing userId in metadata" });
+                    return;
+                }
+                console.log(`✅ Payment Intent Succeeded: ₹${amountPaid} for User: ${userId}`);
+                yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                    const wallet = yield tx.wallet.update({
+                        where: { userId },
+                        data: { balance: { increment: amountPaid } },
+                    });
+                    yield tx.transaction.create({
+                        data: {
+                            userId,
+                            walletId: wallet.id,
+                            amount: amountPaid,
+                            type: "Deposit",
+                            status: "Completed",
+                        },
+                    });
+                }));
+                res.status(200).json({ message: "Payment successful" });
+                return;
+            }
+            case "payment_intent.payment_failed": {
+                const paymentIntent = event.data.object;
+                console.log("❌ Payment Intent Failed:", paymentIntent);
+                res.status(200).json({ message: "Payment failed" });
+                return;
             }
             default:
-                console.log(`Unhandled event type: ${event.type}`);
+                console.log(`⚠️ Unhandled event type: ${event.type}`);
                 res.status(400).send();
+                return;
         }
     }
     catch (error) {
-        console.error('Webhook error:', error);
-        res.status(400).json({ error: 'Webhook signature verification failed' });
+        console.error("❌ Webhook error:", error);
+        res.status(400).json({ error: "Webhook signature verification failed" });
+        return;
     }
 }));
 exports.default = router;

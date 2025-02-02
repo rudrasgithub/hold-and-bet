@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../config/prismaClient';
 import authenticate, { CustomRequest } from '../middlewares/authMiddleware';
 import bodyParser from 'body-parser';
@@ -126,7 +126,7 @@ router.post(
 router.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
-  async (req: Request, res: Response) => {
+  async (req: CustomRequest, res: Response) => {
     const sig = req.headers['stripe-signature'] as string;
     const payload = req.body;
 
@@ -134,58 +134,100 @@ router.post(
       const event = stripe.webhooks.constructEvent(
         payload,
         sig,
-        process.env.ENDPOINT_SECRET!
+        process.env.STRIPE_WEBHOOK_SECRET!
       );
 
       switch (event.type) {
-        case 'payment_intent.succeeded': {
-          const paymentSucceededIntent = event.data
-            .object as Stripe.PaymentIntent;
-          const userIdSuccess = paymentSucceededIntent.metadata.userId;
-          const amountSuccess = paymentSucceededIntent.amount_received / 100;
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = session.metadata?.userId; // Ensure you pass metadata when creating the checkout session
+          const amountPaid = (session.amount_total || 0) / 100;
 
-          // Handle successful payment intent
+          if (!userId) {
+            console.error('❌ Missing userId in session metadata');
+            res.status(400).json({ error: 'Missing userId in metadata' });
+            return;
+          }
+
+          console.log(
+            `✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`
+          );
+
           await prisma.$transaction(async (tx) => {
             const wallet = await tx.wallet.update({
-              where: { userId: userIdSuccess },
-              data: { balance: { increment: amountSuccess } },
+              where: { userId },
+              data: { balance: { increment: amountPaid } },
             });
 
             await tx.transaction.create({
               data: {
-                userId: userIdSuccess,
+                userId,
                 walletId: wallet.id,
-                amount: amountSuccess,
+                amount: amountPaid,
                 type: 'Deposit',
                 status: 'Completed',
               },
             });
           });
 
-          console.log('Payment intent succeeded', paymentSucceededIntent);
+          res
+            .status(200)
+            .json({ message: 'Checkout session processed successfully' });
+          return;
+        }
+
+        case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          const userId = paymentIntent.metadata?.userId;
+          const amountPaid = paymentIntent.amount_received / 100;
+
+          if (!userId) {
+            console.error('❌ Missing userId in payment intent metadata');
+            res.status(400).json({ error: 'Missing userId in metadata' });
+            return;
+          }
+
+          console.log(
+            `✅ Payment Intent Succeeded: ₹${amountPaid} for User: ${userId}`
+          );
+
+          await prisma.$transaction(async (tx) => {
+            const wallet = await tx.wallet.update({
+              where: { userId },
+              data: { balance: { increment: amountPaid } },
+            });
+
+            await tx.transaction.create({
+              data: {
+                userId,
+                walletId: wallet.id,
+                amount: amountPaid,
+                type: 'Deposit',
+                status: 'Completed',
+              },
+            });
+          });
+
           res.status(200).json({ message: 'Payment successful' });
-          break;
+          return;
         }
 
         case 'payment_intent.payment_failed': {
-          const paymentFailedIntent = event.data.object as Stripe.PaymentIntent;
-          // const userIdFailed = paymentFailedIntent.metadata.userId;
-
-          // Handle failed payment
-          console.log('Payment intent failed', paymentFailedIntent);
-
-          // Optionally, you could notify the user or retry payment
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log('❌ Payment Intent Failed:', paymentIntent);
           res.status(200).json({ message: 'Payment failed' });
-          break;
+          return;
         }
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          console.log(`⚠️ Unhandled event type: ${event.type}`);
           res.status(400).send();
+          return;
       }
     } catch (error) {
-      console.error('Webhook error:', error);
+      console.error('❌ Webhook error:', error);
       res.status(400).json({ error: 'Webhook signature verification failed' });
+      return;
     }
   }
 );
