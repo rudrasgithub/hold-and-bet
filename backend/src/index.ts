@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
-import helmet from 'helmet'; // For security headers
-import morgan from 'morgan'; // For request logging
+import helmet from 'helmet';
+import morgan from 'morgan';
 
 import gameRouter from './routes/gameRouter';
 import walletRouter from './routes/walletRouter';
@@ -14,10 +14,9 @@ dotenv.config();
 
 const app = express();
 
-// Use helmet for security headers
 app.use(helmet());
 
-const allowedOrigins = process.env.FRONTEND_URL;
+const allowedOrigins = process.env.FRONTEND_URL || 'http://localhost:3000';
 app.use(
   cors({
     origin: allowedOrigins,
@@ -28,11 +27,10 @@ app.use(
 
 app.use(bodyParser.json());
 
-// Use morgan for logging requests in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined')); // More detailed logging for production
+  app.use(morgan('combined')); 
 } else {
-  app.use(morgan('dev')); // Simpler logging for development
+  app.use(morgan('dev'));
 }
 
 app.use('/api/games', gameRouter);

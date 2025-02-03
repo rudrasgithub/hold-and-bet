@@ -115,20 +115,20 @@ router.post('/withdraw', authMiddleware_1.default, (req, res) => __awaiter(void 
         res.status(500).json({ message: 'Failed to process withdrawal' });
     }
 }));
-router.post("/webhook", body_parser_1.default.raw({ type: "application/json" }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    const sig = req.headers["stripe-signature"];
-    const payload = req.body;
+router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    const sig = req.headers['stripe-signature'];
+    const payload = (_a = req.body) === null || _a === void 0 ? void 0 : _a.toString();
     try {
         const event = stripeConfig_1.stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
         switch (event.type) {
-            case "checkout.session.completed": {
+            case 'checkout.session.completed': {
                 const session = event.data.object;
-                const userId = (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.userId;
+                const userId = (_b = session.metadata) === null || _b === void 0 ? void 0 : _b.userId;
                 const amountPaid = (session.amount_total || 0) / 100;
                 if (!userId) {
-                    console.error("❌ Missing userId in session metadata");
-                    res.status(400).json({ error: "Missing userId in metadata" });
+                    console.error('❌ Missing userId in session metadata');
+                    res.status(400).json({ error: 'Missing userId in metadata' });
                     return;
                 }
                 console.log(`✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`);
@@ -142,21 +142,23 @@ router.post("/webhook", body_parser_1.default.raw({ type: "application/json" }),
                             userId,
                             walletId: wallet.id,
                             amount: amountPaid,
-                            type: "Deposit",
-                            status: "Completed",
+                            type: 'Deposit',
+                            status: 'Completed',
                         },
                     });
                 }));
-                res.status(200).json({ message: "Checkout session processed successfully" });
+                res
+                    .status(200)
+                    .json({ message: 'Checkout session processed successfully' });
                 return;
             }
-            case "payment_intent.succeeded": {
+            case 'payment_intent.succeeded': {
                 const paymentIntent = event.data.object;
-                const userId = (_b = paymentIntent.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                const userId = (_c = paymentIntent.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 const amountPaid = paymentIntent.amount_received / 100;
                 if (!userId) {
-                    console.error("❌ Missing userId in payment intent metadata");
-                    res.status(400).json({ error: "Missing userId in metadata" });
+                    console.error('❌ Missing userId in payment intent metadata');
+                    res.status(400).json({ error: 'Missing userId in metadata' });
                     return;
                 }
                 console.log(`✅ Payment Intent Succeeded: ₹${amountPaid} for User: ${userId}`);
@@ -170,18 +172,18 @@ router.post("/webhook", body_parser_1.default.raw({ type: "application/json" }),
                             userId,
                             walletId: wallet.id,
                             amount: amountPaid,
-                            type: "Deposit",
-                            status: "Completed",
+                            type: 'Deposit',
+                            status: 'Completed',
                         },
                     });
                 }));
-                res.status(200).json({ message: "Payment successful" });
+                res.status(200).json({ message: 'Payment successful' });
                 return;
             }
-            case "payment_intent.payment_failed": {
+            case 'payment_intent.payment_failed': {
                 const paymentIntent = event.data.object;
-                console.log("❌ Payment Intent Failed:", paymentIntent);
-                res.status(200).json({ message: "Payment failed" });
+                console.log('❌ Payment Intent Failed:', paymentIntent);
+                res.status(200).json({ message: 'Payment failed' });
                 return;
             }
             default:
@@ -191,8 +193,8 @@ router.post("/webhook", body_parser_1.default.raw({ type: "application/json" }),
         }
     }
     catch (error) {
-        console.error("❌ Webhook error:", error);
-        res.status(400).json({ error: "Webhook signature verification failed" });
+        console.error('❌ Webhook error:', error);
+        res.status(400).json({ error: 'Webhook signature verification failed' });
         return;
     }
 }));

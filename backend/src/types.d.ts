@@ -1,7 +1,7 @@
 declare global {
   namespace Express {
     interface Request {
-      body?: unknown; // Replace with `unknown` for type safety
+      body?: Buffer;
       params?: {
         [key: string]: string;
       };
@@ -16,4 +16,4 @@ declare global {
   }
 }
 
-export {}; // Ensure this file is treated as a module
+export {};
