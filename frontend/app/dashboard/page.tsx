@@ -306,7 +306,7 @@ const Dashboard = () => {
                 <div className="pt-5 flex justify-center gap-4">
                   <Button
                     onClick={revealCards}
-                    disabled={Object.keys(bets).length === 0 || heldCardIndex === null || gameRevealed || loadingCards}
+                    disabled={Object.keys(bets).length === 0 || heldCardIndex === null || gameRevealed || loadingCards || cardLoading}
                     className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
                   >
                     {loadingCards ? "Revealing..." : "Reveal Cards"}
