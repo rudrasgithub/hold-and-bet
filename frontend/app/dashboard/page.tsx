@@ -83,6 +83,7 @@ const Dashboard = () => {
       toast.error("Add more funds to start a game.");
       return;
     }
+    setcardLoading(true);
     const isGameStarted = toast.loading("Please wait until game starts!!!")
     dispatch(setGameStarted(true));
     dispatch(setRevealedCards(new Array(4).fill(false)));
@@ -113,8 +114,9 @@ const Dashboard = () => {
   };
 
   const holdCard = async (index: number, isCardHeld: string) => {
-    if (heldCardIndex !== null || revealedCards[index]) return;
-
+    if (heldCardIndex !== null || revealedCards[index]) {
+      return;
+    }
     try {
       await axios.post(`${BACKEND_URL}/games/${gameId}/hold`, { hold: `Card${index + 1}` }, {
         headers: {
@@ -124,6 +126,7 @@ const Dashboard = () => {
       dispatch(setHeldCardIndex(index));
       toast.dismiss(isCardHeld)
       toast.success(`Card ${index + 1} is now held.`);
+      setcardLoading(false);
     } catch (error) {
       console.log(error)
       toast.error("Please, try again.");
@@ -170,10 +173,9 @@ const Dashboard = () => {
 
   const handleCardClick = (index: number) => {
     if (heldCardIndex === null) {
-      const isCardHeld = toast.loading("Holding your card, please wait...")
       setcardLoading(true);
+      const isCardHeld = toast.loading("Holding your card, please wait...")
       holdCard(index, isCardHeld);
-      setcardLoading(false)
       return;
     }
     placeBet(index, selectedBetAmount);
@@ -314,6 +316,7 @@ const Dashboard = () => {
                   <Button
                     onClick={startGame}
                     variant="outline"
+                    disabled={cardLoading}
                     className="border-purple-600/50 hover:bg-purple-600/20 text-white px-8 py-6 text-lg"
                   >
                     New Game
