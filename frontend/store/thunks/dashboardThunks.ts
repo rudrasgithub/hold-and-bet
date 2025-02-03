@@ -12,7 +12,7 @@ export const placeBetThunk = createAsyncThunk(
   async ({ gameId, betData, token }: { gameId: string; betData: { cardId: string; amount: number }; token: string }) => {
 
     const { cardId, amount } = betData;
-    console.log("Placing bet on:", cardId, "Amount:", amount);
+    // console.log("Placing bet on:", cardId, "Amount:", amount);
 
     const response = await axios.post(
       `${BACKEND_URL}/games/${gameId}/bet`,

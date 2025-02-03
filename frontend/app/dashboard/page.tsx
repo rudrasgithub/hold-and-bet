@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const Dashboard = () => {
   const dispatch = useDispatch<AppDispatch>();
   const balance = useSelector((state: RootState) => state.wallet.balance);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
+  const [cardLoading, setcardLoading] = useState<boolean>(true);
   const {
     gameStarted,
     cards,
@@ -72,7 +72,7 @@ const Dashboard = () => {
 
       fetchBalance();
     }
-  }, [session?.user.token, dispatch, BACKEND_URL]);
+  }, [session?.user.token, dispatch, BACKEND_URL, cardLoading]);
 
   if (status === "loading") {
     return <DashboardSkeleton />;
@@ -83,7 +83,7 @@ const Dashboard = () => {
       toast.error("Add more funds to start a game.");
       return;
     }
-    toast.success("Please wait until game starts!!!")
+    const isGameStarted = toast.loading("Please wait until game starts!!!")
     dispatch(setGameStarted(true));
     dispatch(setRevealedCards(new Array(4).fill(false)));
     dispatch(setHeldCardIndex(null));
@@ -93,12 +93,14 @@ const Dashboard = () => {
     dispatch(setCards({}));
     dispatch(setRevealedCardResults({}));
     dispatch(setLoadingCards(false));
-    
+
     if (session?.user.token) {
       try {
         const { game } = await dispatch(startNewGameThunk(session.user.token)).unwrap();
         if (game.id) {
           dispatch(setGameId(game.id));
+          setcardLoading(false);
+          toast.dismiss(isGameStarted)
           toast.success("Game created!");
         } else {
           toast.error("Failed to start a new game.");
@@ -140,6 +142,7 @@ const Dashboard = () => {
       toast.error("You don't have enough balance for this bet.");
       return;
     }
+    setcardLoading(true);
     const cardId = `Card${cardIndex + 1}`;
     const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
     dispatch(setBets(updatedBets));
@@ -147,6 +150,7 @@ const Dashboard = () => {
       try {
         const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount }, token: session.user.token })).unwrap();
         if (response) {
+          setcardLoading(false)
           toast.success(`₹${amount} placed on ${cardId}`);
         }
       } catch (error) {
@@ -158,7 +162,9 @@ const Dashboard = () => {
 
   const handleCardClick = (index: number) => {
     if (heldCardIndex === null) {
+      setcardLoading(true);
       holdCard(index);
+      setcardLoading(false)
       return;
     }
     placeBet(index, selectedBetAmount);
@@ -169,6 +175,7 @@ const Dashboard = () => {
       toast.error("You must hold a card before revealing.");
       return;
     }
+    setcardLoading(true);
     dispatch(setRevealedCards(new Array(4).fill(true)));
     dispatch(setLoadingCards(true));
 
@@ -243,11 +250,12 @@ const Dashboard = () => {
                         >
                           <div className="text-center">
                             <PlayingCard
+                              cardLoading={cardLoading}
                               card={card}
                               isRevealed={revealedCards[index]}
                               isHeld={heldCardIndex === index}
                               onClick={() => handleCardClick(index)}
-                              disabled={heldCardIndex === null || heldCardIndex === index || revealedCards[index]}
+                              disabled={cardLoading === true || heldCardIndex === null || heldCardIndex === index || revealedCards[index]}
                             />
                             {bets[cardKey] && (
                               <div className="mt-3 text-gray-300">
@@ -274,6 +282,7 @@ const Dashboard = () => {
                       >
                         <div className="text-center">
                           <PlayingCard
+                            cardLoading={cardLoading}
                             card={{ suit: "", value: "0" }}
                             isRevealed={false}
                             isHeld={false}

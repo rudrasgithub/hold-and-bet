@@ -8,6 +8,7 @@ interface PlayingCardProps {
   isHeld: boolean;
   onClick: () => void;
   disabled: boolean;
+  cardLoading: boolean;
 }
 
 const suitSymbols: { [key: string]: string } = {
@@ -17,14 +18,14 @@ const suitSymbols: { [key: string]: string } = {
   Spades: "♠️",
 };
 
-const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, disabled }) => {
+const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, disabled, cardLoading }) => {
   const cardClass = isHeld
     ? "transform scale-110 shadow-xl ring-4 ring-purple-400 animate-pulse"
     : "transform scale-100";
-  console.log("isHeld", isHeld)
-  console.log("disabled", disabled);
-  // Disable pointer events and cursor for the held card
-  const cardStyles = disabled || isHeld ? "pointer-events-none cursor-not-allowed" : "cursor-pointer";
+  // Disable pointer events and hover effect when loading
+  const cardStyles = disabled || isHeld || cardLoading
+    ? "pointer-events-none cursor-not-allowed"
+    : "cursor-pointer";
 
   const suitColor = card.suit === "Hearts" || card.suit === "Diamonds" ? "text-red-600" : "text-black";
 
@@ -32,7 +33,7 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
     <motion.div
       className={`relative w-32 h-48 rounded-xl bg-white border-2 border-gray-300 shadow-lg transition-all ${cardClass} ${cardStyles}`}
       onClick={onClick}
-      whileHover={!isHeld && !disabled ? { scale: 1.05 } : {}}
+      whileHover={!isHeld && !disabled && !cardLoading ? { scale: 1.05 } : {}} // Disable hover effect if loading
       animate={{
         rotateY: isRevealed ? 0 : 180,
       }}
@@ -45,7 +46,7 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
     >
       <motion.div
         className={`absolute inset-0 flex flex-col justify-between p-4 bg-white rounded-xl ${suitColor}`}
-        style={{ backfaceVisibility: "hidden" }} // Prevents front from being visible when flipped
+        style={{ backfaceVisibility: "hidden" }}
       >
         <div className="flex justify-between text-xl font-bold">
           <span>{suitSymbols[card.suit]}</span>
@@ -62,13 +63,12 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
         </div>
       </motion.div>
 
-      {/* Back of the card (symbol ? rotated when not revealed) */}
       {!isRevealed && (
         <motion.div
           className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 text-white text-2xl font-bold rounded-xl"
           style={{
-            backfaceVisibility: "visible", // Always keep back visible
-            transform: "rotateY(180deg)", // Rotate to keep `?` facing the user
+            backfaceVisibility: "visible",
+            transform: "rotateY(180deg)",
           }}
         >
           ?
