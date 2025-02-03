@@ -72,7 +72,7 @@ const Dashboard = () => {
 
       fetchBalance();
     }
-  }, [session?.user.token, dispatch, BACKEND_URL, cardLoading]);
+  }, [session?.user.token, dispatch, BACKEND_URL, cardLoading, heldCardIndex, bets]);
 
   if (status === "loading") {
     return <DashboardSkeleton />;
@@ -112,7 +112,7 @@ const Dashboard = () => {
     }
   };
 
-  const holdCard = async (index: number) => {
+  const holdCard = async (index: number, isCardHeld: string) => {
     if (heldCardIndex !== null || revealedCards[index]) return;
 
     try {
@@ -122,6 +122,7 @@ const Dashboard = () => {
         },
       });
       dispatch(setHeldCardIndex(index));
+      toast.dismiss(isCardHeld)
       toast.success(`Card ${index + 1} is now held.`);
     } catch (error) {
       console.log(error)
@@ -142,15 +143,22 @@ const Dashboard = () => {
       toast.error("You don't have enough balance for this bet.");
       return;
     }
+    const isBetPlacing = toast.loading("Processing your bet, just a moment...");
+
     setcardLoading(true);
+    
     const cardId = `Card${cardIndex + 1}`;
     const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
+    
     dispatch(setBets(updatedBets));
+    
     if (session?.user.token) {
       try {
         const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount }, token: session.user.token })).unwrap();
         if (response) {
           setcardLoading(false)
+
+          toast.dismiss(isBetPlacing)
           toast.success(`₹${amount} placed on ${cardId}`);
         }
       } catch (error) {
@@ -162,8 +170,9 @@ const Dashboard = () => {
 
   const handleCardClick = (index: number) => {
     if (heldCardIndex === null) {
+      const isCardHeld = toast.loading("Holding your card, please wait...")
       setcardLoading(true);
-      holdCard(index);
+      holdCard(index, isCardHeld);
       setcardLoading(false)
       return;
     }
@@ -255,7 +264,7 @@ const Dashboard = () => {
                               isRevealed={revealedCards[index]}
                               isHeld={heldCardIndex === index}
                               onClick={() => handleCardClick(index)}
-                              disabled={cardLoading === true || heldCardIndex === null || heldCardIndex === index || revealedCards[index]}
+                              disabled={heldCardIndex === null || heldCardIndex === index || revealedCards[index]}
                             />
                             {bets[cardKey] && (
                               <div className="mt-3 text-gray-300">
