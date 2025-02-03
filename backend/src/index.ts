@@ -28,7 +28,7 @@ app.use(
 app.use(bodyParser.json());
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined')); 
+  app.use(morgan('combined'));
 } else {
   app.use(morgan('dev'));
 }

@@ -11,10 +11,10 @@ export default function TryDemo() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 w-full max-w-screen-xl mx-auto">
-        <div className="rounded-xl overflow-hidden shadow-lg">
+      <div className="grid grid-cols-2 gap-6 w-full max-w-screen-2xl mx-auto">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg"  // Replace with your actual photo path
+            src="/demo/hold-and-bet-1.png"  // Replace with your actual photo path
             alt="Card Clash Game - Example Image 1"
             width={600}
             height={400}
@@ -26,9 +26,9 @@ export default function TryDemo() {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden shadow-lg">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg" 
+            src="/demo/hold-and-bet-2.png"
             alt="Card Clash Game - Example Image 2"
             width={600}
             height={400}
@@ -40,9 +40,9 @@ export default function TryDemo() {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden shadow-lg">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg"  // Replace with your actual photo path
+            src="/demo/hold-and-bet-game.png" 
             alt="Card Clash Game - Example Image 3"
             width={600}
             height={400}
@@ -54,9 +54,9 @@ export default function TryDemo() {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden shadow-lg">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg"  // Replace with your actual photo path
+            src="/demo/hold-and-bet-holding.png"
             alt="Card Clash Game - Example Image 4"
             width={600}
             height={400}
@@ -68,9 +68,9 @@ export default function TryDemo() {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden shadow-lg">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg"  // Replace with your actual photo path
+            src="/demo/hold-and-bet-bet.png"
             alt="Card Clash Game - Example Image 5"
             width={600}
             height={400}
@@ -82,9 +82,9 @@ export default function TryDemo() {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden shadow-lg">
+        <div className="rounded-3xl overflow-hidden shadow-lg">
           <Image
-            src="/landing-page.jpg"  // Replace with your actual photo path
+            src="/demo/hold-and-bet-5.png"
             alt="Card Clash Game - Example Image 6"
             width={600}
             height={400}
@@ -95,6 +95,147 @@ export default function TryDemo() {
             <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
           </div>
         </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-revealing.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-revealed.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-calc-1.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-calc-2.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-profile.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-wallet.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-withdraw.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-7.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-privacy.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-lg">
+          <Image
+            src="/demo/hold-and-bet-contact.png"
+            alt="Card Clash Game - Example Image 6"
+            width={600}
+            height={400}
+            className="w-full h-full object-cover"
+          />
+          <div className="text-center mt-4">
+            <h4 className="text-xl font-semibold text-purple-400">Card Collection</h4>
+            <p className="text-lg text-white">Collect rare cards and build your deck to dominate the game!</p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

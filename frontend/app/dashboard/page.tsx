@@ -64,6 +64,7 @@ const Dashboard = () => {
             },
           });
           dispatch(updateBalance(response.data.balance));
+          console.log(bets);
         } catch (error) {
           console.log(error)
           toast.error("Failed to fetch wallet balance");
@@ -152,12 +153,10 @@ const Dashboard = () => {
     
     const cardId = `Card${cardIndex + 1}`;
     const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
-    
     dispatch(setBets(updatedBets));
-    
     if (session?.user.token) {
       try {
-        const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount }, token: session.user.token })).unwrap();
+        const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount: updatedBets[cardId]  }, token: session.user.token })).unwrap();
         if (response) {
           setcardLoading(false)
 
@@ -276,8 +275,8 @@ const Dashboard = () => {
                             {revealedCards[index] && gameRevealed && revealedCardResults?.[cardKey] && (
                               <div className={`text-sm font-bold ${revealedCardResults[cardKey].gain ? "text-green-500" : "text-red-500"}`}>
                                 {revealedCardResults[cardKey].gain
-                                  ? `Gain: ₹${revealedCardResults[cardKey].gain}`
-                                  : `Loss: ₹${revealedCardResults[cardKey].loss}`}
+                                  ? `Gain: +${revealedCardResults[cardKey].gain}`
+                                  : `Loss: ${revealedCardResults[cardKey].loss}`}
                               </div>
                             )}
                           </div>
@@ -323,7 +322,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
 
-                {resultAmount !== 0 && (
+                {gameRevealed && (
                   <div className={`mt-6 text-lg font-bold text-center ${resultAmount > 0 ? "text-green-500" : "text-red-500"}`}>
                     {resultAmount > 0 ? `You Won: ₹${resultAmount}` : `You Lost: ₹${resultAmount}`}
                   </div>
