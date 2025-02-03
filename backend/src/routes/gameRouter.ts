@@ -257,7 +257,7 @@ router.post(
       console.log(generatedCards);
       console.log(holdedCard);
 
-      const betCards = Object.keys(bets); // Get all keys from the bets (e.g., Card1, Card2, etc.)
+      const betCards = Object.keys(bets);
 
       if (betCards.length < 1 || betCards.length > 3) {
         res.status(400).json({ error: 'User must bet on 1 to 3 cards' });
@@ -272,29 +272,24 @@ router.post(
       let totalEarnings = 0;
       const heldCardValue = cardRecord[generatedCards[holdedCard].value];
 
-      // Prepare bet data for response
       const cardResults: {
         [key: string]: { bet: number; loss?: number; gain?: number };
       } = {};
 
       for (const betCard of betCards) {
-        const betAmount = bets[betCard]; // Get the bet amount for this card
+        const betAmount = bets[betCard];
         const betValue = cardRecord[generatedCards[betCard].value];
         console.log(betValue);
 
-        // Calculate win or loss based on the comparison of the held card's value and the bet card's value
         if (heldCardValue >= betValue) {
-          // Loss: Player lost the bet
           cardResults[betCard] = { bet: betAmount, loss: -betAmount };
           totalEarnings -= betAmount;
         } else {
-          // Win: Player won the bet, so they earn double their bet
           cardResults[betCard] = { bet: betAmount, gain: betAmount * 2 };
           totalEarnings += betAmount * 2;
         }
       }
 
-      // Exclude the held card from the results
       delete cardResults[holdedCard];
 
       const wallet = await prisma.wallet.findUnique({ where: { userId } });
@@ -305,9 +300,8 @@ router.post(
 
       console.log('wallet found');
       const walletId = wallet.id;
-      const newBalance = wallet.balance + totalEarnings;
+      const newBalance = wallet.balance + totalEarnings/2;
 
-      // Create a transaction to update the wallet balance and game state
       await prisma.$transaction([
         prisma.wallet.update({
           where: { id: walletId },
@@ -335,7 +329,6 @@ router.post(
       console.log('transaction completed');
       await redisClient.del(`game:${gameId}`);
 
-      // Respond with the results of the game
       res.status(200).json({
         message: 'Game revealed successfully',
         totalEarnings,

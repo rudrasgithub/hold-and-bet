@@ -316,7 +316,7 @@ const Dashboard = () => {
                   <Button
                     onClick={startGame}
                     variant="outline"
-                    disabled={cardLoading}
+                    disabled={cardLoading && !gameRevealed}
                     className="border-purple-600/50 hover:bg-purple-600/20 text-white px-8 py-6 text-lg"
                   >
                     New Game
