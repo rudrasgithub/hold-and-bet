@@ -22,8 +22,8 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
   const cardClass = isHeld
     ? "transform scale-110 shadow-xl ring-4 ring-purple-400 animate-pulse"
     : "transform scale-100";
-  // Disable pointer events and hover effect when loading
-  const cardStyles = disabled || isHeld || cardLoading
+
+    const cardStyles = disabled || isHeld || cardLoading
     ? "pointer-events-none cursor-not-allowed"
     : "cursor-pointer";
 
