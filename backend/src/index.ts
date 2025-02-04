@@ -9,6 +9,7 @@ import gameRouter from './routes/gameRouter';
 import walletRouter from './routes/walletRouter';
 import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
+import webhookRouter from './routes/webhookRoute';
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ app.use(
     allowedHeaders: 'Content-Type,Authorization',
   })
 );
+
+app.use('/api/webhook', webhookRouter);
 
 app.use(bodyParser.json());
 
