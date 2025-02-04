@@ -26,7 +26,7 @@ app.use(
   })
 );
 
-app.use('/api/webhook', webhookRouter);
+app.use('/api/wallet', webhookRouter);
 
 app.use(bodyParser.json());
 
