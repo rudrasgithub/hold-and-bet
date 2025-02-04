@@ -22,6 +22,7 @@ export interface RevealedCardResult {
 }
 
 export interface Transaction {
+    id: string | null | undefined;
     updatedAt: string;
     type: string;
     amount: number;

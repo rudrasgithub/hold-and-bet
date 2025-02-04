@@ -116,7 +116,7 @@ router.post('/withdraw', authMiddleware_1.default, (req, res) => __awaiter(void 
     }
 }));
 router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b;
     const sig = req.headers['stripe-signature'];
     const payload = (_a = req.body) === null || _a === void 0 ? void 0 : _a.toString();
     try {
@@ -124,77 +124,80 @@ router.post('/webhook', body_parser_1.default.raw({ type: 'application/json' }),
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                const userId = (_b = session.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                const userId = session.client_reference_id;
                 const amountPaid = (session.amount_total || 0) / 100;
                 if (!userId) {
-                    console.error('❌ Missing userId in session metadata');
-                    res.status(400).json({ error: 'Missing userId in metadata' });
+                    console.error('❌ Missing userId in client_reference_id');
+                    res.status(400).json({ error: 'Missing user reference' });
                     return;
                 }
                 console.log(`✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`);
-                yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-                    const wallet = yield tx.wallet.update({
-                        where: { userId },
-                        data: { balance: { increment: amountPaid } },
-                    });
-                    yield tx.transaction.create({
-                        data: {
-                            userId,
-                            walletId: wallet.id,
-                            amount: amountPaid,
-                            type: 'Deposit',
-                            status: 'Completed',
-                        },
-                    });
-                }));
-                res
-                    .status(200)
-                    .json({ message: 'Checkout session processed successfully' });
-                return;
-            }
-            case 'payment_intent.succeeded': {
-                const paymentIntent = event.data.object;
-                const userId = (_c = paymentIntent.metadata) === null || _c === void 0 ? void 0 : _c.userId;
-                const amountPaid = paymentIntent.amount_received / 100;
-                if (!userId) {
-                    console.error('❌ Missing userId in payment intent metadata');
-                    res.status(400).json({ error: 'Missing userId in metadata' });
+                try {
+                    yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                        const wallet = yield tx.wallet.update({
+                            where: { userId },
+                            data: { balance: { increment: amountPaid } },
+                        });
+                        yield tx.transaction.create({
+                            data: {
+                                userId,
+                                walletId: wallet.id,
+                                amount: amountPaid,
+                                type: 'Deposit',
+                                status: 'Completed',
+                            },
+                        });
+                    }));
+                }
+                catch (dbError) {
+                    console.error('❌ Database transaction failed:', dbError);
+                    res.status(500).json({ error: 'Failed to update records' });
                     return;
                 }
-                console.log(`✅ Payment Intent Succeeded: ₹${amountPaid} for User: ${userId}`);
-                yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-                    const wallet = yield tx.wallet.update({
-                        where: { userId },
-                        data: { balance: { increment: amountPaid } },
-                    });
-                    yield tx.transaction.create({
-                        data: {
-                            userId,
-                            walletId: wallet.id,
-                            amount: amountPaid,
-                            type: 'Deposit',
-                            status: 'Completed',
-                        },
-                    });
-                }));
-                res.status(200).json({ message: 'Payment successful' });
+                res.json({ message: 'Checkout processed successfully' });
                 return;
             }
             case 'payment_intent.payment_failed': {
                 const paymentIntent = event.data.object;
-                console.log('❌ Payment Intent Failed:', paymentIntent);
-                res.status(200).json({ message: 'Payment failed' });
+                const userId = (_b = paymentIntent.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                console.error('❌ Payment Failed:', {
+                    id: paymentIntent.id,
+                    userId,
+                    error: paymentIntent.last_payment_error
+                });
+                if (userId) {
+                    try {
+                        yield prismaClient_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                            const wallet = yield tx.wallet.findUnique({
+                                where: { userId: userId }
+                            });
+                            yield tx.transaction.create({
+                                data: {
+                                    userId,
+                                    walletId: wallet === null || wallet === void 0 ? void 0 : wallet.id,
+                                    amount: paymentIntent.amount / 100,
+                                    type: 'Deposit',
+                                    status: 'Failed',
+                                },
+                            });
+                        }));
+                    }
+                    catch (dbError) {
+                        console.error('❌ Failed to record failed transaction:', dbError);
+                    }
+                }
+                res.status(200).json({ message: 'Payment failure logged' });
                 return;
             }
             default:
                 console.log(`⚠️ Unhandled event type: ${event.type}`);
-                res.status(400).send();
+                res.status(400).end();
                 return;
         }
     }
     catch (error) {
         console.error('❌ Webhook error:', error);
-        res.status(400).json({ error: 'Webhook signature verification failed' });
+        res.status(400).json({ error: 'Invalid signature' });
         return;
     }
 }));

@@ -258,7 +258,7 @@ router.post(
       console.log(holdedCard);
 
       const betCards = Object.keys(bets);
-      console.log(JSON.stringify(bets))
+      console.log(JSON.stringify(bets));
       if (betCards.length < 1 || betCards.length > 3) {
         res.status(400).json({ error: 'User must bet on 1 to 3 cards' });
         return;

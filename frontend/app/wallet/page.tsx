@@ -14,18 +14,17 @@ import toast from 'react-hot-toast';
 import { parseISO, format } from 'date-fns';
 import { useDispatch, useSelector } from "react-redux";
 import { setWalletData, addTransaction, updateBalance } from "@/store/slices/walletSlice";
-import { Transaction } from "@/types";
 import useAuth from "@/lib/useAuth";
 import { RootState } from "@/store";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
+const PAYMENT_LINK = process.env.NEXT_PUBLIC_PAYMENT_LINK;
 
 const WalletPage = () => {
   const { session, status } = useAuth();
   const dispatch = useDispatch();
   const walletData = useSelector((state: RootState) => state.wallet);
-  const [isWithdrawing, setisWithdrawing] = useState<boolean>(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
@@ -36,43 +35,41 @@ const WalletPage = () => {
     if (session?.user.token) {
       try {
         const response = await axios.get(`${BACKEND_URL}/wallet`, {
-          headers: {
-            Authorization: `Bearer ${session.user.token}`,
-          },
+          headers: { Authorization: `Bearer ${session.user.token}` }
         });
-        const { wallet, transactions } = response.data;
-
-        const sortedTransactions = transactions.sort(
-          (a: Transaction, b: Transaction) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
-
-        dispatch(setWalletData({ balance: wallet.balance, transactions: sortedTransactions }));
+        
+        // Maintain existing Redux structure
+        dispatch(setWalletData({
+          balance: response.data.wallet.balance,
+          transactions: response.data.transactions
+        }));
+        
       } catch (error) {
-        console.error("Error fetching wallet data:", error);
+        toast.error('Failed to load wallet data');
+        console.error("Wallet fetch error:", error);
       } finally {
         setLoading(false);
       }
-    } else {
-      console.log("No token found in session");
-      setLoading(false);
     }
-  }, [session?.user.token, dispatch]); // Add dependencies
+  }, [session?.user.token, dispatch]);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchWalletData();
-    }
-  }, [status, fetchWalletData]); // Include fetchWalletData in the dependency array
+    if (status === "authenticated") fetchWalletData();
+  }, [status, fetchWalletData]);
 
-  const formatTimestamp = (date: string) => {
-    try {
-      const parsedDate = parseISO(date); // Parse the ISO string to a Date object
-      return format(parsedDate, 'MMM dd, yyyy, hh:mm:ss a'); // Format the date to your preferred format
-    } catch (error) {
-      console.log(error)
-      return "Invalid Date"; // If there's an error, return "Invalid Date"
+  const generatePaymentLink = () => {
+    if (!session?.user) {
+      toast.error('Please login to make a deposit');
+      return '#';
     }
+
+    const params = new URLSearchParams({
+      prefilled_email: session.user.email || '',
+      prefilled_customer_name: session.user.name || '',
+      client_reference_id: session.user.id
+    });
+
+    return `${PAYMENT_LINK}?${params.toString()}`;
   };
 
   const handleWithdrawal = async () => {
@@ -80,54 +77,49 @@ const WalletPage = () => {
       toast.error("Amount must be greater than 0!");
       return;
     }
-    if (!session?.user?.token) {  // ✅ Added check to prevent errors
-      toast.error("You must be logged in to withdraw.");
-      return;
-    }
 
+    setIsWithdrawing(true);
+    
     try {
       const response = await axios.post(
         `${BACKEND_URL}/wallet/withdraw`,
         { amount: withdrawAmount },
-        {
-          headers: {
-            Authorization: `Bearer ${session?.user?.token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${session?.user.token}` } }
       );
 
-      const { newBalance, transactions: updatedTransactions } = response.data;
-
-      dispatch(updateBalance(newBalance));
-      updatedTransactions.forEach((transaction: Transaction) => dispatch(addTransaction(transaction)));
+      // Update Redux state without modifying slice structure
+      dispatch(updateBalance(response.data.newBalance));
+      dispatch(addTransaction(response.data.transactions));
+      
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
-      setisWithdrawing(false);
       setIsDialogOpen(false);
     } catch (error) {
-      console.error("Error processing withdrawal:", error);
       toast.error("Withdrawal failed. Please try again.");
+      console.error("Withdrawal error:", error);
+    } finally {
+      setIsWithdrawing(false);
+      setWithdrawAmount(0);
     }
   };
 
-  if (loading) {
+  if (loading || status === "loading") {
     return <WalletSkeleton />;
   }
 
-  if (!walletData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        No wallet data available.
-      </div>
-    );
-  }
-
   const totalPages = Math.ceil(walletData.transactions.length / itemsPerPage);
-  const currentTransactions = walletData.transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as Transaction[];
+  const currentTransactions = walletData.transactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-6 space-y-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5 }}
+        >
           <Card className="mb-8 bg-gray-800 border-purple-600/20">
             <CardHeader>
               <CardTitle className="text-gray-200">Wallet Balance</CardTitle>
@@ -139,15 +131,13 @@ const WalletPage = () => {
               <div className="mt-4 flex gap-4">
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                  onClick={() => {
-                    window.location.href = paymentlink as string;
-                  }}
+                  onClick={() => window.location.href = generatePaymentLink()}
                 >
                   <ArrowUpCircle className="h-4 w-4" />
                   Deposit
                 </Button>
 
-                <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -172,13 +162,10 @@ const WalletPage = () => {
                       />
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
-                        disabled={loading}
-                        onClick={() => {
-                          setisWithdrawing(true)
-                          handleWithdrawal();
-                        }}
+                        onClick={handleWithdrawal}
+                        disabled={isWithdrawing}
                       >
-                        {!isWithdrawing ? "Request Withdrawal" : "Processing"}
+                        {isWithdrawing ? "Processing..." : "Confirm Withdrawal"}
                       </Button>
                     </div>
                   </DialogContent>
@@ -202,10 +189,10 @@ const WalletPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentTransactions.map((transaction, index) => (
-                    <TableRow key={index} className="border-gray-700">
+                  {currentTransactions.map((transaction) => (
+                    <TableRow key={transaction.id} className="border-gray-700">
                       <TableCell className="text-gray-300">
-                        {formatTimestamp(transaction.updatedAt)}
+                        {format(parseISO(transaction.updatedAt), 'MMM dd, yyyy, hh:mm:ss a')}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -218,8 +205,9 @@ const WalletPage = () => {
                         </div>
                       </TableCell>
                       <TableCell
-                        className={`font-medium ${transaction.type === "BetWin" ? "text-green-500" : "text-red-500"
-                          }`}
+                        className={`font-medium ${
+                          transaction.type === "BetWin" ? "text-green-500" : "text-red-500"
+                        }`}
                       >
                         ₹{transaction.amount.toFixed(2)}
                       </TableCell>
@@ -231,8 +219,9 @@ const WalletPage = () => {
                             <Clock className="text-yellow-500 h-4 w-4" />
                           )}
                           <span
-                            className={`capitalize ${transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
-                              }`}
+                            className={`capitalize ${
+                              transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
+                            }`}
                           >
                             {transaction.status}
                           </span>
@@ -246,7 +235,7 @@ const WalletPage = () => {
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="border-purple-600/50 hover:bg-purple-600/20 text-white"
                 >
@@ -254,7 +243,7 @@ const WalletPage = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="border-purple-600/50 hover:bg-purple-600/20 text-white"
                 >

@@ -33,7 +33,7 @@ const Dashboard = () => {
   const dispatch = useDispatch<AppDispatch>();
   const balance = useSelector((state: RootState) => state.wallet.balance);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const [cardLoading, setcardLoading] = useState<boolean>(true);
+  const [cardLoading, setcardLoading] = useState<boolean>(false);
   const {
     gameStarted,
     cards,
@@ -70,7 +70,7 @@ const Dashboard = () => {
           toast.error("Failed to fetch wallet balance");
         }
       };
-
+      console.log("cardLoading", cardLoading);
       fetchBalance();
     }
   }, [session?.user.token, dispatch, BACKEND_URL, cardLoading, heldCardIndex, bets]);
@@ -206,6 +206,7 @@ const Dashboard = () => {
         } else {
           toast.error("Better luck next time!");
         }
+        setcardLoading(false);
       } catch (error) {
         console.log(error)
         toast.error("Failed to reveal cards.");
@@ -315,7 +316,7 @@ const Dashboard = () => {
                   <Button
                     onClick={startGame}
                     variant="outline"
-                    disabled={cardLoading && !gameRevealed}
+                    disabled={cardLoading && gameStarted}
                     className="border-purple-600/50 hover:bg-purple-600/20 text-white px-8 py-6 text-lg"
                   >
                     New Game

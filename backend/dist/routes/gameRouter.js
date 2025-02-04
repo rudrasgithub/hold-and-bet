@@ -219,6 +219,7 @@ router.post('/:gameId/reveal', authMiddleware_1.default, (req, res) => __awaiter
         console.log(generatedCards);
         console.log(holdedCard);
         const betCards = Object.keys(bets);
+        console.log(JSON.stringify(bets));
         if (betCards.length < 1 || betCards.length > 3) {
             res.status(400).json({ error: 'User must bet on 1 to 3 cards' });
             return;
@@ -239,8 +240,8 @@ router.post('/:gameId/reveal', authMiddleware_1.default, (req, res) => __awaiter
                 totalEarnings -= betAmount;
             }
             else {
-                cardResults[betCard] = { bet: betAmount, gain: betAmount * 2 };
-                totalEarnings += betAmount * 2;
+                cardResults[betCard] = { bet: betAmount, gain: betAmount };
+                totalEarnings += betAmount;
             }
         }
         delete cardResults[holdedCard];

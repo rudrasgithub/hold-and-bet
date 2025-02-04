@@ -140,93 +140,88 @@ router.post(
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
-          const userId = session.metadata?.userId; // Ensure you pass metadata when creating the checkout session
+          
+          const userId = session.client_reference_id;
           const amountPaid = (session.amount_total || 0) / 100;
 
           if (!userId) {
-            console.error('❌ Missing userId in session metadata');
-            res.status(400).json({ error: 'Missing userId in metadata' });
+            console.error('❌ Missing userId in client_reference_id');
+            res.status(400).json({ error: 'Missing user reference' });
             return;
           }
 
-          console.log(
-            `✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`
-          );
+          console.log(`✅ Checkout completed for User: ${userId}, Amount: ₹${amountPaid}`);
 
-          await prisma.$transaction(async (tx) => {
-            const wallet = await tx.wallet.update({
-              where: { userId },
-              data: { balance: { increment: amountPaid } },
+          try {
+            await prisma.$transaction(async (tx) => {
+              const wallet = await tx.wallet.update({
+                where: { userId },
+                data: { balance: { increment: amountPaid } },
+              });
+
+              await tx.transaction.create({
+                data: {
+                  userId,
+                  walletId: wallet.id,
+                  amount: amountPaid,
+                  type: 'Deposit',
+                  status: 'Completed',
+                },
+              });
             });
-
-            await tx.transaction.create({
-              data: {
-                userId,
-                walletId: wallet.id,
-                amount: amountPaid,
-                type: 'Deposit',
-                status: 'Completed',
-              },
-            });
-          });
-
-          res
-            .status(200)
-            .json({ message: 'Checkout session processed successfully' });
-          return;
-        }
-
-        case 'payment_intent.succeeded': {
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          const userId = paymentIntent.metadata?.userId;
-          const amountPaid = paymentIntent.amount_received / 100;
-
-          if (!userId) {
-            console.error('❌ Missing userId in payment intent metadata');
-            res.status(400).json({ error: 'Missing userId in metadata' });
+          } catch (dbError) {
+            console.error('❌ Database transaction failed:', dbError);
+            res.status(500).json({ error: 'Failed to update records' });
             return;
           }
 
-          console.log(
-            `✅ Payment Intent Succeeded: ₹${amountPaid} for User: ${userId}`
-          );
-
-          await prisma.$transaction(async (tx) => {
-            const wallet = await tx.wallet.update({
-              where: { userId },
-              data: { balance: { increment: amountPaid } },
-            });
-
-            await tx.transaction.create({
-              data: {
-                userId,
-                walletId: wallet.id,
-                amount: amountPaid,
-                type: 'Deposit',
-                status: 'Completed',
-              },
-            });
-          });
-
-          res.status(200).json({ message: 'Payment successful' });
+          res.json({ message: 'Checkout processed successfully' });
           return;
         }
 
         case 'payment_intent.payment_failed': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log('❌ Payment Intent Failed:', paymentIntent);
-          res.status(200).json({ message: 'Payment failed' });
+          const userId = paymentIntent.metadata?.userId;
+          
+          console.error('❌ Payment Failed:', {
+            id: paymentIntent.id,
+            userId,
+            error: paymentIntent.last_payment_error
+          });
+
+          if (userId) {
+            try {
+              await prisma.$transaction(async (tx) => {
+                const wallet = await tx.wallet.findUnique({
+                  where: { userId: userId }
+                })
+                await tx.transaction.create({
+                  data: {
+                    userId,
+                    walletId: wallet?.id as string,
+                    amount: paymentIntent.amount / 100,
+                    type: 'Deposit',
+                    status: 'Failed',
+                  },
+                });
+              })
+            } catch (dbError) {
+              console.error('❌ Failed to record failed transaction:', dbError);
+            }
+          }
+
+          res.status(200).json({ message: 'Payment failure logged' });
           return;
         }
 
         default:
           console.log(`⚠️ Unhandled event type: ${event.type}`);
-          res.status(400).send();
+          res.status(400).end();
           return;
       }
     } catch (error) {
       console.error('❌ Webhook error:', error);
-      res.status(400).json({ error: 'Webhook signature verification failed' });
+      res.status(400).json({ error: 'Invalid signature' });
       return;
     }
   }
