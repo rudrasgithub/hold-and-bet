@@ -52,7 +52,7 @@ const WalletPage = () => {
       console.log("No token found in session");
       setLoading(false);
     }
-  }, [session?.user.token, dispatch]); 
+  }, [session?.user.token, dispatch]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -63,7 +63,7 @@ const WalletPage = () => {
   const formatTimestamp = (date: string) => {
     try {
       const parsedDate = parseISO(date);
-      return format(parsedDate, 'MMM dd, yyyy, hh:mm:ss a'); 
+      return format(parsedDate, 'MMM dd, yyyy, hh:mm:ss a');
     } catch (error) {
       console.log(error)
       return "Invalid Date";
@@ -206,6 +206,8 @@ const WalletPage = () => {
                         <div className="flex items-center gap-2">
                           {transaction.type === "BetWin" ? (
                             <TrendingUp className="text-green-500 h-4 w-4" />
+                          ) : transaction.type === "Deposit" ? (
+                            <TrendingUp className="text-green-500 h-4 w-4" />
                           ) : (
                             <TrendingDown className="text-red-500 h-4 w-4" />
                           )}
@@ -213,8 +215,11 @@ const WalletPage = () => {
                         </div>
                       </TableCell>
                       <TableCell
-                        className={`font-medium ${transaction.type === "BetWin" ? "text-green-500" : "text-red-500"
-                          }`}
+                        className={`font-medium ${
+                          transaction.type === "BetWin" || transaction.type === "Deposit"
+                            ? "text-green-500"
+                            : "text-red-500"
+                        }`}
                       >
                         ₹{transaction.amount.toFixed(2)}
                       </TableCell>
