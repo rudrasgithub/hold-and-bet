@@ -13,6 +13,7 @@ const gameRouter_1 = __importDefault(require("./routes/gameRouter"));
 const walletRouter_1 = __importDefault(require("./routes/walletRouter"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const webhookRoute_1 = __importDefault(require("./routes/webhookRoute"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
@@ -22,6 +23,7 @@ app.use((0, cors_1.default)({
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
 }));
+app.use('/api/wallet', webhookRoute_1.default);
 app.use(body_parser_1.default.json());
 if (process.env.NODE_ENV === 'production') {
     app.use((0, morgan_1.default)('combined'));

@@ -42,7 +42,7 @@ const WalletPage = () => {
         });
         const { wallet, transactions } = response.data;
 
-        dispatch(setWalletData({ balance: wallet.balance, transactions }));
+        dispatch(setWalletData({ walletId: wallet.id, balance: wallet.balance, transactions }));
       } catch (error) {
         console.error("Error fetching wallet data:", error);
       } finally {
@@ -135,7 +135,7 @@ const WalletPage = () => {
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                   onClick={() => {
-                    window.location.href = `${paymentlink}?prefilled_email=${session?.user.email}&prefilled_customer_name=${session?.user.name}&client_reference_id=${session?.user.id}`;
+                    window.location.href = `${paymentlink}?prefilled_email=${session?.user.email}&prefilled_customer_name=${session?.user.name}&client_reference_id=${walletData.walletId}`;
                   }}
                 >
                   <ArrowUpCircle className="h-4 w-4" />

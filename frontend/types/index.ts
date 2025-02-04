@@ -30,6 +30,7 @@ export interface Transaction {
 }
 
 export interface WalletState {
+    walletId: string;
     balance: number;
     transactions: Transaction[];
 }

@@ -36,8 +36,8 @@ router.get('/', authenticate, async (req: CustomRequest, res: Response) => {
           orderBy: {
             createdAt: 'desc',
           },
-        },
-      },
+        }
+      }
     });
 
     if (!wallet) {

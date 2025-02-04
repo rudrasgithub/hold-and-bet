@@ -2,15 +2,17 @@ import { Transaction, WalletState } from '@/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState: WalletState = {
+  walletId: "",
   balance: 0,
-  transactions: [],
+  transactions: []
 };
 
 const walletSlice = createSlice({
   name: 'wallet',
   initialState,
   reducers: {
-    setWalletData(state, action: PayloadAction<{ balance: number; transactions: Transaction[] }>) {
+    setWalletData(state, action: PayloadAction<{ walletId: string, balance: number; transactions: Transaction[] }>) {
+      state.walletId = action.payload.walletId;
       state.balance = action.payload.balance;
       // Sort transactions in descending order by the updatedAt field
       state.transactions = action.payload.transactions.sort((a, b) =>
