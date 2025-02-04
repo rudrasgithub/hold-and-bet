@@ -279,7 +279,7 @@ const Dashboard = () => {
                               <div className={`text-sm font-bold ${revealedCardResults[cardKey].gain ? "text-green-500" : "text-red-500"}`}>
                                 {revealedCardResults[cardKey].gain
                                   ? `Gain: +${revealedCardResults[cardKey].gain}`
-                                  : `Loss: ${revealedCardResults[cardKey].loss}`
+                                  : `Loss: -${revealedCardResults[cardKey].loss}`
                                 }
                               </div>
                             )}
@@ -328,7 +328,7 @@ const Dashboard = () => {
 
                 {gameRevealed && (
                   <div className={`mt-6 text-lg font-bold text-center ${resultAmount > 0 ? "text-green-500" : "text-red-500"}`}>
-                    {resultAmount > 0 ? `You Won: +₹${resultAmount}` : `You Lost: ₹${resultAmount}`}
+                    {resultAmount > 0 ? `You Won: +₹${resultAmount}` : `You Lost: -₹${resultAmount}`}
                   </div>
                 )}
 
