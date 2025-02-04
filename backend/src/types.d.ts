@@ -1,7 +1,7 @@
 declare global {
   namespace Express {
     interface Request {
-      body?: Buffer;
+      body?: string | Buffer;
       params?: {
         [key: string]: string;
       };

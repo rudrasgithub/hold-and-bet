@@ -128,11 +128,11 @@ router.post(
   bodyParser.raw({ type: 'application/json' }),
   async (req: CustomRequest, res: Response) => {
     const sig = req.headers['stripe-signature'] as string;
-    const payload = req.body;
+    const payload = req.body;  // Change this from req.rawBody to req.body
 
     try {
       const event = stripe.webhooks.constructEvent(
-        payload,
+        payload as Buffer,  // req.body is already a Buffer
         sig,
         process.env.STRIPE_WEBHOOK_SECRET!
       );
@@ -194,7 +194,7 @@ router.post(
               await prisma.$transaction(async (tx) => {
                 const wallet = await tx.wallet.findUnique({
                   where: { userId: userId }
-                })
+                });
                 await tx.transaction.create({
                   data: {
                     userId,
@@ -204,7 +204,7 @@ router.post(
                     status: 'Failed',
                   },
                 });
-              })
+              });
             } catch (dbError) {
               console.error('❌ Failed to record failed transaction:', dbError);
             }
@@ -226,5 +226,6 @@ router.post(
     }
   }
 );
+
 
 export default router;
