@@ -69,8 +69,6 @@ const Dashboard = () => {
           toast.error("Failed to fetch wallet balance");
         }
       };
-      console.log("cardLoading", cardLoading);
-      console.log("bets in useEffect", bets);
       fetchBalance();
     }
   }, [session?.user.token, dispatch, BACKEND_URL, cardLoading, heldCardIndex, bets]);
@@ -154,8 +152,6 @@ const Dashboard = () => {
     const cardId = `Card${cardIndex + 1}`;
     const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
     dispatch(setBets(updatedBets));
-    console.log("updated bets", updatedBets);
-    console.log("bets", bets);
     if (session?.user.token) {
       try {
         const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount: updatedBets[cardId]  }, token: session.user.token })).unwrap();
@@ -328,7 +324,7 @@ const Dashboard = () => {
 
                 {gameRevealed && (
                   <div className={`mt-6 text-lg font-bold text-center ${resultAmount > 0 ? "text-green-500" : "text-red-500"}`}>
-                    {resultAmount > 0 ? `You Won: +₹${resultAmount}` : `You Lost: -₹${resultAmount}`}
+                    {resultAmount > 0 ? `You Won: +₹${resultAmount}` : `You Lost: ₹${resultAmount}`}
                   </div>
                 )}
 

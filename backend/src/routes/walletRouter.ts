@@ -128,7 +128,7 @@ router.post(
   bodyParser.raw({ type: 'application/json' }),
   async (req: CustomRequest, res: Response) => {
     const sig = req.headers['stripe-signature'] as string;
-    const payload = req.body?.toString();
+    const payload = req.body;
 
     try {
       const event = stripe.webhooks.constructEvent(

@@ -144,8 +144,8 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-amber-500/20 rounded-lg blur-3xl" />
               <Image
                 src="/landing-page2.jpg"
-                width={500}
-                height={250}
+                width={700}
+                height={60}
                 alt="Hold & Bet Benefits"
                 className="relative rounded-lg shadow-xl"
               />
