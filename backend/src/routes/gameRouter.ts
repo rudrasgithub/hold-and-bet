@@ -282,11 +282,11 @@ router.post(
         console.log(betValue);
 
         if (heldCardValue >= betValue) {
-          cardResults[betCard] = { bet: betAmount, loss: betAmount };
+          cardResults[betCard] = { bet: betAmount, loss: -betAmount };
           totalEarnings -= betAmount;
         } else {
-          cardResults[betCard] = { bet: betAmount, gain: betAmount };
-          totalEarnings += betAmount;
+          cardResults[betCard] = { bet: betAmount, gain: betAmount/2 };
+          totalEarnings += betAmount/2;
         }
       }
 

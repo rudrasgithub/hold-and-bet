@@ -14,17 +14,18 @@ import toast from 'react-hot-toast';
 import { parseISO, format } from 'date-fns';
 import { useDispatch, useSelector } from "react-redux";
 import { setWalletData, addTransaction, updateBalance } from "@/store/slices/walletSlice";
+import { Transaction } from "@/types";
 import useAuth from "@/lib/useAuth";
 import { RootState } from "@/store";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const PAYMENT_LINK = process.env.NEXT_PUBLIC_PAYMENT_LINK;
+const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
 
 const WalletPage = () => {
   const { session, status } = useAuth();
   const dispatch = useDispatch();
   const walletData = useSelector((state: RootState) => state.wallet);
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isWithdrawing, setisWithdrawing] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
@@ -35,41 +36,38 @@ const WalletPage = () => {
     if (session?.user.token) {
       try {
         const response = await axios.get(`${BACKEND_URL}/wallet`, {
-          headers: { Authorization: `Bearer ${session.user.token}` }
+          headers: {
+            Authorization: `Bearer ${session.user.token}`,
+          },
         });
-        
-        // Maintain existing Redux structure
-        dispatch(setWalletData({
-          balance: response.data.wallet.balance,
-          transactions: response.data.transactions
-        }));
-        
+        const { wallet, transactions } = response.data;
+
+        dispatch(setWalletData({ balance: wallet.balance, transactions }));
       } catch (error) {
-        toast.error('Failed to load wallet data');
-        console.error("Wallet fetch error:", error);
+        console.error("Error fetching wallet data:", error);
       } finally {
         setLoading(false);
       }
+    } else {
+      console.log("No token found in session");
+      setLoading(false);
     }
-  }, [session?.user.token, dispatch]);
+  }, [session?.user.token, dispatch]); 
 
   useEffect(() => {
-    if (status === "authenticated") fetchWalletData();
+    if (status === "authenticated") {
+      fetchWalletData();
+    }
   }, [status, fetchWalletData]);
 
-  const generatePaymentLink = () => {
-    if (!session?.user) {
-      toast.error('Please login to make a deposit');
-      return '#';
+  const formatTimestamp = (date: string) => {
+    try {
+      const parsedDate = parseISO(date);
+      return format(parsedDate, 'MMM dd, yyyy, hh:mm:ss a'); 
+    } catch (error) {
+      console.log(error)
+      return "Invalid Date";
     }
-
-    const params = new URLSearchParams({
-      prefilled_email: session.user.email || '',
-      prefilled_customer_name: session.user.name || '',
-      client_reference_id: session.user.id
-    });
-
-    return `${PAYMENT_LINK}?${params.toString()}`;
   };
 
   const handleWithdrawal = async () => {
@@ -77,49 +75,54 @@ const WalletPage = () => {
       toast.error("Amount must be greater than 0!");
       return;
     }
+    if (!session?.user?.token) {
+      toast.error("You must be logged in to withdraw.");
+      return;
+    }
 
-    setIsWithdrawing(true);
-    
     try {
       const response = await axios.post(
         `${BACKEND_URL}/wallet/withdraw`,
         { amount: withdrawAmount },
-        { headers: { Authorization: `Bearer ${session?.user.token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.token}`,
+          },
+        }
       );
 
-      // Update Redux state without modifying slice structure
-      dispatch(updateBalance(response.data.newBalance));
-      dispatch(addTransaction(response.data.transaction));
-      
+      const { newBalance, transactions: updatedTransactions } = response.data;
+
+      dispatch(updateBalance(newBalance));
+      updatedTransactions.forEach((transaction: Transaction) => dispatch(addTransaction(transaction)));
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
+      setisWithdrawing(false);
       setIsDialogOpen(false);
     } catch (error) {
+      console.error("Error processing withdrawal:", error);
       toast.error("Withdrawal failed. Please try again.");
-      console.error("Withdrawal error:", error);
-    } finally {
-      setIsWithdrawing(false);
-      setWithdrawAmount(0);
     }
   };
 
-  if (loading || status === "loading") {
+  if (loading) {
     return <WalletSkeleton />;
   }
 
+  if (!walletData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        No wallet data available.
+      </div>
+    );
+  }
+
   const totalPages = Math.ceil(walletData.transactions.length / itemsPerPage);
-  const currentTransactions = walletData.transactions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const currentTransactions = walletData.transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as Transaction[];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-6 space-y-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card className="mb-8 bg-gray-800 border-purple-600/20">
             <CardHeader>
               <CardTitle className="text-gray-200">Wallet Balance</CardTitle>
@@ -131,13 +134,15 @@ const WalletPage = () => {
               <div className="mt-4 flex gap-4">
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                  onClick={() => window.location.href = generatePaymentLink()}
+                  onClick={() => {
+                    window.location.href = `${paymentlink}?prefilled_email=${session?.user.email}&prefilled_customer_name=${session?.user.name}&client_reference_id=${session?.user.id}`;
+                  }}
                 >
                   <ArrowUpCircle className="h-4 w-4" />
                   Deposit
                 </Button>
 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -162,10 +167,13 @@ const WalletPage = () => {
                       />
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
-                        onClick={handleWithdrawal}
-                        disabled={isWithdrawing}
+                        disabled={loading}
+                        onClick={() => {
+                          setisWithdrawing(true)
+                          handleWithdrawal();
+                        }}
                       >
-                        {isWithdrawing ? "Processing..." : "Confirm Withdrawal"}
+                        {!isWithdrawing ? "Request Withdrawal" : "Processing"}
                       </Button>
                     </div>
                   </DialogContent>
@@ -189,10 +197,10 @@ const WalletPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentTransactions.map((transaction) => (
-                    <TableRow key={transaction.id} className="border-gray-700">
+                  {currentTransactions.map((transaction, index) => (
+                    <TableRow key={index} className="border-gray-700">
                       <TableCell className="text-gray-300">
-                        {format(parseISO(transaction.updatedAt), 'MMM dd, yyyy, hh:mm:ss a')}
+                        {formatTimestamp(transaction.updatedAt)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -205,9 +213,8 @@ const WalletPage = () => {
                         </div>
                       </TableCell>
                       <TableCell
-                        className={`font-medium ${
-                          transaction.type === "BetWin" ? "text-green-500" : "text-red-500"
-                        }`}
+                        className={`font-medium ${transaction.type === "BetWin" ? "text-green-500" : "text-red-500"
+                          }`}
                       >
                         ₹{transaction.amount.toFixed(2)}
                       </TableCell>
@@ -219,9 +226,8 @@ const WalletPage = () => {
                             <Clock className="text-yellow-500 h-4 w-4" />
                           )}
                           <span
-                            className={`capitalize ${
-                              transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
-                            }`}
+                            className={`capitalize ${transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
+                              }`}
                           >
                             {transaction.status}
                           </span>
@@ -235,7 +241,7 @@ const WalletPage = () => {
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="border-purple-600/50 hover:bg-purple-600/20 text-white"
                 >
@@ -243,7 +249,7 @@ const WalletPage = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="border-purple-600/50 hover:bg-purple-600/20 text-white"
                 >
