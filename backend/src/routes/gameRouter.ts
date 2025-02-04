@@ -282,7 +282,7 @@ router.post(
         console.log(betValue);
 
         if (heldCardValue >= betValue) {
-          cardResults[betCard] = { bet: betAmount, loss: -betAmount };
+          cardResults[betCard] = { bet: betAmount, loss: betAmount };
           totalEarnings -= betAmount;
         } else {
           cardResults[betCard] = { bet: betAmount, gain: betAmount };

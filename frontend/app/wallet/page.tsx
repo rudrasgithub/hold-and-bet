@@ -89,7 +89,7 @@ const WalletPage = () => {
 
       // Update Redux state without modifying slice structure
       dispatch(updateBalance(response.data.newBalance));
-      dispatch(addTransaction(response.data.transactions));
+      dispatch(addTransaction(response.data.transaction));
       
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
       setIsDialogOpen(false);
