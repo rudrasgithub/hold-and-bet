@@ -236,7 +236,7 @@ router.post('/:gameId/reveal', authMiddleware_1.default, (req, res) => __awaiter
             const betValue = lib_1.cardRecord[generatedCards[betCard].value];
             console.log(betValue);
             if (heldCardValue >= betValue) {
-                cardResults[betCard] = { bet: betAmount, loss: -betAmount };
+                cardResults[betCard] = { bet: betAmount, loss: betAmount };
                 totalEarnings -= betAmount;
             }
             else {
