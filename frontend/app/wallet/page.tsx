@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, CheckCircle2, Clock } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, CheckCircle2, Clock, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -32,6 +32,7 @@ const WalletPage = () => {
   const dispatch = useDispatch();
   const walletData = useSelector((state: RootState) => state.wallet);
   const [isWithdrawing, setisWithdrawing] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
@@ -185,13 +186,29 @@ const WalletPage = () => {
     );
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchWalletData(1);
+    setIsRefreshing(false);
+    toast.success('Wallet refreshed!');
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card className="mb-4 sm:mb-6 md:mb-8 bg-gray-800 border-purple-600/20">
-            <CardHeader className="p-4 sm:p-6">
+            <CardHeader className="p-4 sm:p-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg sm:text-xl text-gray-200">Wallet Balance</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="text-gray-400 hover:text-white hover:bg-gray-700"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
