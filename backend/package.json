@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "pnpm lint && pnpm format && ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/index.ts",
     "build": "pnpm prisma generate && tsc && tsc-alias",
-    "vercel-build": "pnpm prisma generate && tsc && tsc-alias",
+    "vercel-build": "pnpm prisma generate --force && tsc && tsc-alias",
     "start": "pm2 start dist/index.js --name hold-and-bet-backend",
     "lint": "eslint --fix \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\""
