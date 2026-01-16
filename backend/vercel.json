@@ -2,21 +2,19 @@
   "version": 2,
   "buildCommand": "pnpm vercel-build",
   "installCommand": "pnpm install",
-  "outputDirectory": ".",
-  "builds": [
-    {
-      "src": "dist/src/index.js",
-      "use": "@vercel/node"
+  "functions": {
+    "dist/src/index.js": {
+      "runtime": "@vercel/node@3"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "dist/src/index.js"
+      "source": "/api/(.*)",
+      "destination": "/dist/src/index.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "dist/src/index.js"
+      "source": "/(.*)",
+      "destination": "/dist/src/index.js"
     }
   ]
 }
