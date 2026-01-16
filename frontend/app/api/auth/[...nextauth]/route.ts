@@ -21,6 +21,10 @@ const handler = NextAuth({
       try {
         const randomPassword = generateRandomPassword(8);
         console.log('Calling backend register API:', `${BACKEND_URL}/register`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         const response = await fetch(`${BACKEND_URL}/register`, {
           method: 'POST',
           headers: {
@@ -32,12 +36,35 @@ const handler = NextAuth({
             name: user.name,
             image: user.image,
           }),
+          signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
+        console.log('Response status:', response.status);
+        console.log('Response content-type:', response.headers.get('content-type'));
+
         if (!response.ok) {
-          const errorData = await response.json();
+          const contentType = response.headers.get('content-type');
+          let errorData;
+          
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+          } else {
+            const text = await response.text();
+            console.error('Non-JSON response:', text.substring(0, 200));
+            throw new Error(`Backend returned non-JSON response: ${response.status}`);
+          }
+          
           console.error('Backend error:', errorData);
           throw new Error(errorData.error || 'Registration failed');
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Expected JSON but got:', text.substring(0, 200));
+          throw new Error('Backend returned non-JSON response');
         }
 
         const data = await response.json();
@@ -56,6 +83,7 @@ const handler = NextAuth({
       } catch (error: unknown) {
         const err = error as Error;
         console.error('Error signing in:', err.message || error);
+        console.error('Full error:', error);
         return false;
       }
     },
