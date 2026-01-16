@@ -29,6 +29,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://hold-and-bet.vercel.app',
+  'https://hold-and-bet-c8at.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 

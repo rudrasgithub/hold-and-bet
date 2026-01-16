@@ -8,13 +8,13 @@ const router = Router();
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   const { email, name, password, image } = req.body;
   console.log('Register endpoint called with email:', email);
-  
+
   if (!email || !password) {
     console.log('Missing required fields: email or password');
     res.status(400).json({ error: 'Email and password are required' });
     return;
   }
-  
+
   try {
     console.log('Checking for existing user...');
     const existingUser = await prisma.user.findUnique({ where: { email } });

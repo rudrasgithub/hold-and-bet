@@ -15,7 +15,7 @@
 
 - **Strategic Gameplay**: Hold one card and place bets on three decks.
 - **Integrated Wallet**: Secure transaactions via Stripe for deposits, withdrawals, and betting.
-- **Real-Time Updates**: WebSocket-based gameplay for live updates on wins and losses.
+- **Real-Time Updates**: Live gameplay updates with instant state synchronization and optimistic UI updates.
 - **Dynamic Animations**: Immersive animations for shuffling, deck displays, and live results.
 - **Secure Data Handling**: 
   - PostgreSQL database with Prisma ORM for complex relationships.
@@ -29,7 +29,7 @@
 - **Backend**: [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/)
 - **Database**: PostgreSQL with [Prisma ORM](https://www.prisma.io/)
 - **Authentication**: JWT, OAuth
-- **Real-Time Communication**: WebSockets, Redis
+- **State Management**: Redux Toolkit with async thunks
 - **Payment Integration**: Stripe
 
 ---
