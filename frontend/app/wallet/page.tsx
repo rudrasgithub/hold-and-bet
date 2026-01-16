@@ -81,6 +81,26 @@ const WalletPage = () => {
     }
   }, [session?.user?.token, dispatch, itemsPerPage]);
 
+  // Check for successful payment redirect and refresh wallet
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get('success');
+    const paymentCanceled = urlParams.get('canceled');
+    
+    if (paymentSuccess === 'true') {
+      toast.success('Payment successful! Your balance will be updated shortly.');
+      // Remove query params from URL
+      window.history.replaceState({}, '', window.location.pathname);
+      // Delay fetch to give webhook time to process
+      setTimeout(() => {
+        fetchWalletData(1);
+      }, 2000);
+    } else if (paymentCanceled === 'true') {
+      toast.error('Payment was canceled.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [fetchWalletData]);
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchWalletData(1);
@@ -109,11 +129,17 @@ const WalletPage = () => {
       toast.error("Amount must be greater than 0!");
       return;
     }
+    if (withdrawAmount > walletData.balance) {
+      toast.error("Insufficient balance!");
+      return;
+    }
     if (!session?.user?.token) {
       toast.error("You must be logged in to withdraw.");
       return;
     }
 
+    setisWithdrawing(true);
+    
     try {
       const response = await fetch(`${BACKEND_URL}/wallet/withdraw`, {
         method: 'POST',
@@ -126,7 +152,7 @@ const WalletPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Withdrawal failed');
+        throw new Error(errorData.message || errorData.error || 'Withdrawal failed');
       }
 
       const { newBalance, transactions: updatedTransactions } = await response.json();
@@ -134,13 +160,16 @@ const WalletPage = () => {
       dispatch(updateBalance(newBalance));
       updatedTransactions.forEach((transaction: Transaction) => dispatch(addTransaction(transaction)));
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
-      setisWithdrawing(false);
+      setWithdrawAmount(0);
       setIsDialogOpen(false);
       // Refresh the transactions after withdrawal
       fetchWalletData(1);
     } catch (error) {
-      console.error("Error processing withdrawal:", error);
-      toast.error("Withdrawal failed. Please try again.");
+      const err = error as Error;
+      console.error("Error processing withdrawal:", err.message || error);
+      toast.error(err.message || "Withdrawal failed. Please try again.");
+    } finally {
+      setisWithdrawing(false);
     }
   };
 
@@ -204,13 +233,10 @@ const WalletPage = () => {
                       />
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
-                        disabled={loading}
-                        onClick={() => {
-                          setisWithdrawing(true)
-                          handleWithdrawal();
-                        }}
+                        disabled={isWithdrawing || withdrawAmount <= 0}
+                        onClick={handleWithdrawal}
                       >
-                        {!isWithdrawing ? "Request Withdrawal" : "Processing"}
+                        {isWithdrawing ? "Processing..." : "Request Withdrawal"}
                       </Button>
                     </div>
                   </DialogContent>
