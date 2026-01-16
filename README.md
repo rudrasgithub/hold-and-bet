@@ -2,12 +2,19 @@
 
 **Hold & Bet: Card Clash** is a multiplayer card game where players strategically hold one card and place bets on three decks, competing for rewards based on game outcomes. It features real-time updates, secure wallet transactions, and dynamic animations for an immersive gaming experience.
 
+🌐 **Live Demo**: [https://hold-and-bet.vercel.app](https://hold-and-bet.vercel.app)
+
+---
+
+## 📸 **Demo Screenshots**
+🎮 **See the demo screenshots**: [https://hold-and-bet.vercel.app/try-demo](https://hold-and-bet.vercel.app/try-demo)
+
 ---
 
 ## 🚀 **Features**
 
 - **Strategic Gameplay**: Hold one card and place bets on three decks.
-- **Integrated Wallet**: Secure transactions via Stripe for deposits, withdrawals, and betting.
+- **Integrated Wallet**: Secure transaactions via Stripe for deposits, withdrawals, and betting.
 - **Real-Time Updates**: WebSocket-based gameplay for live updates on wins and losses.
 - **Dynamic Animations**: Immersive animations for shuffling, deck displays, and live results.
 - **Secure Data Handling**: 
