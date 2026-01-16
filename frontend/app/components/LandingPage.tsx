@@ -27,22 +27,22 @@ export default function LandingPage() {
       className="flex flex-col min-h-screen transition-colors duration-300 dark bg-gray-900 text-gray-50"
     >
       <div className="flex-1">
-        <div className="relative py-10 md:py-10 overflow-hidden">
+        <div className="relative py-6 sm:py-8 md:py-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-amber-500/10" />
           <div className="container px-4 md:px-6 relative">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <Badge className="w-fit bg-purple-600 text-white hover:bg-purple-700">New Game</Badge>
-                  <h5 className="font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent animate-gradient">
+                  <Badge className="w-fit bg-purple-600 text-white hover:bg-purple-700 text-xs sm:text-sm">New Game</Badge>
+                  <h5 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl/none font-bold tracking-tighter bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent animate-gradient">
                     Bet, Hold, and Win Big in the Ultimate Card Clash Game!
                   </h5>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  <p className="max-w-[600px] text-muted-foreground text-sm sm:text-base md:text-xl">
                     Experience the thrill of strategic betting across multiple decks while holding your winning card.
                     Join thousands of players in this unique card game experience.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Button
                     size="lg"
                     className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
@@ -80,17 +80,17 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div id="features" className="py-10 bg-gradient-to-b from-purple-50 to-transparent dark:from-purple-900/30">
+      <div id="features" className="py-8 sm:py-10 bg-gradient-to-b from-purple-50 to-transparent dark:from-purple-900/30">
         <div className="container px-4 md:px-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
+          <div className="text-center space-y-2 sm:space-y-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
               Game Features
             </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+            <p className="mx-auto max-w-[700px] text-muted-foreground text-sm sm:text-base md:text-xl">
               Discover what makes Hold & Bet the most exciting card game platform
             </p>
           </div>
-          <div className="grid gap-6 mt-12 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 mt-8 sm:mt-12 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: Users,
@@ -124,10 +124,10 @@ export default function LandingPage() {
               }
             ].map((feature, index) => (
               <Card key={index} className="group hover:shadow-purple-500/10 transition-all duration-300 dark:bg-gray-800">
-                <CardContent className="p-6 space-y-2">
-                  <feature.icon className="h-12 w-12 mb-4 text-purple-600 group-hover:text-amber-500 transition-colors" />
-                  <h3 className="text-xl font-bold group-hover:text-purple-600 transition-colors">{feature.title}</h3>
-                  <p className="text-muted-foreground">
+                <CardContent className="p-4 sm:p-6 space-y-2">
+                  <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 mb-2 sm:mb-4 text-purple-600 group-hover:text-amber-500 transition-colors" />
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold group-hover:text-purple-600 transition-colors">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -137,29 +137,29 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div id="benefits" className="py-20 px-6">
+      <div id="benefits" className="py-10 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="container px-4 md:px-6">
-          <div className="grid lg:grid-cols-[1fr_600px] lg:gap-20">
-            <div className="relative">
+          <div className="grid gap-8 lg:grid-cols-[1fr_600px] lg:gap-20">
+            <div className="relative order-2 lg:order-1">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-amber-500/20 rounded-lg blur-3xl" />
               <Image
                 src="/landing-page2.jpg"
                 width={700}
                 height={60}
                 alt="Hold & Bet Benefits"
-                className="relative rounded-lg shadow-xl"
+                className="relative rounded-lg shadow-xl w-full"
               />
             </div>
-            <div className="flex flex-col justify-center space-y-8">
+            <div className="flex flex-col justify-center space-y-6 sm:space-y-8 order-1 lg:order-2">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
                   Why Choose Hold & Bet?
                 </h2>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm sm:text-base">
                   Experience a new level of card gaming with our unique features and secure platform.
                 </p>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {[
                   {
                     icon: Shield,
@@ -177,11 +177,11 @@ export default function LandingPage() {
                     description: "Hold cards and place strategic bets to maximize your winnings."
                   }
                 ].map((benefit, index) => (
-                  <div key={index} className="flex gap-2 group">
-                    <benefit.icon className="h-6 w-6 text-purple-600 group-hover:text-amber-500 transition-colors flex-shrink-0" />
+                  <div key={index} className="flex gap-2 sm:gap-3 group">
+                    <benefit.icon className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 group-hover:text-amber-500 transition-colors flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-bold group-hover:text-purple-600 transition-colors">{benefit.title}</h3>
-                      <p className="text-muted-foreground">{benefit.description}</p>
+                      <h3 className="font-bold text-sm sm:text-base group-hover:text-purple-600 transition-colors">{benefit.title}</h3>
+                      <p className="text-muted-foreground text-xs sm:text-sm">{benefit.description}</p>
                     </div>
                   </div>
                 ))}
@@ -191,17 +191,17 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div id="faq" className="py-20 bg-gradient-to-b from-purple-50 to-transparent dark:from-purple-900/30">
+      <div id="faq" className="py-10 sm:py-16 md:py-20 bg-gradient-to-b from-purple-50 to-transparent dark:from-purple-900/30">
         <div className="container px-4 md:px-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
+          <div className="text-center space-y-2 sm:space-y-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
               Frequently Asked Questions
             </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+            <p className="mx-auto max-w-[700px] text-muted-foreground text-sm sm:text-base md:text-xl">
               Find answers to common questions about Hold & Bet
             </p>
           </div>
-          <div className="mx-auto max-w-3xl mt-12">
+          <div className="mx-auto max-w-3xl mt-8 sm:mt-12">
             <Accordion type="single" collapsible className="w-full">
               {[
                 {
@@ -235,19 +235,19 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="py-20 relative overflow-hidden">
+      <div className="py-10 sm:py-16 md:py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-amber-500/10" />
         <div className="container px-4 md:px-6 relative">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
                 Ready to Bet and Win?
               </h2>
-              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-[600px] text-muted-foreground text-sm sm:text-base md:text-xl">
                 Join thousands of players and experience the thrill of Hold & Bet today.
               </p>
             </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 size="lg"
                 className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"

@@ -44,7 +44,7 @@ CREATE TABLE "Game" (
     "generatedCards" JSONB NOT NULL,
     "holdedCard" "holdedType" NOT NULL DEFAULT 'None',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAT" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Game_pkey" PRIMARY KEY ("id")
 );

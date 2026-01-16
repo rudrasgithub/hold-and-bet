@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { prisma } from '../config/prismaClient';
+import prisma from '@/lib/prisma';
 import authenticate, { CustomRequest } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -27,17 +27,13 @@ router.get(
 
 router.get('/', authenticate, async (req: CustomRequest, res: Response) => {
   const userId = req.user?.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 5;
+  const skip = (page - 1) * limit;
 
   try {
     const wallet = await prisma.wallet.findUnique({
       where: { userId: userId },
-      include: {
-        transactions: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
     });
 
     if (!wallet) {
@@ -45,9 +41,30 @@ router.get('/', authenticate, async (req: CustomRequest, res: Response) => {
       return;
     }
 
+    // Get paginated transactions with optimized query
+    const [transactions, totalCount] = await Promise.all([
+      prisma.transaction.findMany({
+        where: { walletId: wallet.id },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.transaction.count({
+        where: { walletId: wallet.id },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
     res.status(200).json({
       wallet,
-      transactions: wallet.transactions,
+      transactions,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasMore: page < totalPages,
+      },
     });
     console.log('done');
   } catch (error) {

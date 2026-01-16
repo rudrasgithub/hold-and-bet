@@ -31,7 +31,7 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
 
   return (
     <motion.div
-      className={`relative w-32 h-48 rounded-xl bg-white border-2 border-gray-300 shadow-lg transition-all ${cardClass} ${cardStyles}`}
+      className={`relative w-20 h-28 sm:w-24 sm:h-36 md:w-32 md:h-48 rounded-lg sm:rounded-xl bg-white border-2 border-gray-300 shadow-lg transition-all ${cardClass} ${cardStyles}`}
       onClick={onClick}
       whileHover={!isHeld && !disabled && !cardLoading ? { scale: 1.05 } : {}} // Disable hover effect if loading
       animate={{
@@ -45,19 +45,19 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
       style={{ perspective: 1000 }}
     >
       <motion.div
-        className={`absolute inset-0 flex flex-col justify-between p-4 bg-white rounded-xl ${suitColor}`}
+        className={`absolute inset-0 flex flex-col justify-between p-2 sm:p-3 md:p-4 bg-white rounded-lg sm:rounded-xl ${suitColor}`}
         style={{ backfaceVisibility: "hidden" }}
       >
-        <div className="flex justify-between text-xl font-bold">
+        <div className="flex justify-between text-sm sm:text-lg md:text-xl font-bold">
           <span>{suitSymbols[card.suit]}</span>
           <span>{suitSymbols[card.suit]}</span>
         </div>
 
-        <div className="flex items-center justify-center text-4xl font-bold">
+        <div className="flex items-center justify-center text-xl sm:text-2xl md:text-4xl font-bold">
           <span>{card.value}</span>
         </div>
 
-        <div className="flex justify-between text-xl font-bold">
+        <div className="flex justify-between text-sm sm:text-lg md:text-xl font-bold">
           <span>{suitSymbols[card.suit]}</span>
           <span>{suitSymbols[card.suit]}</span>
         </div>
@@ -65,7 +65,7 @@ const PlayingCard: FC<PlayingCardProps> = ({ card, isRevealed, isHeld, onClick, 
 
       {!isRevealed && (
         <motion.div
-          className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 text-white text-2xl font-bold rounded-xl"
+          className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 text-white text-lg sm:text-xl md:text-2xl font-bold rounded-lg sm:rounded-xl"
           style={{
             backfaceVisibility: "visible",
             transform: "rotateY(180deg)",

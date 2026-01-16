@@ -7,3 +7,5 @@ githubSSHKey
 githubSSHKey.pub
 sshkey
 sshkey.pub
+
+/app/generated/prisma

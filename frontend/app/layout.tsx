@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en" className="mx-10">
+    <html lang="en">
       <Head>
       <link rel="icon" href="/favicon.ico" sizes="any" />
       </Head>
@@ -42,11 +42,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900`}
       >
         <Providers>
-          <div className="mx-28 my-3 backdrop-blur-lg sticky top-0 bg-background/80 z-50">
+          <div className="mx-4 sm:mx-8 md:mx-16 lg:mx-28 my-3 backdrop-blur-lg sticky top-0 bg-background/80 z-50">
             <Navbar />
           </div>
-          <div className="mx-10">{children}</div>
-          <div className="mx-10">
+          <div className="mx-4 sm:mx-6 md:mx-10">{children}</div>
+          <div className="mx-4 sm:mx-6 md:mx-10">
             <Footer />
           </div>
           <Toaster />

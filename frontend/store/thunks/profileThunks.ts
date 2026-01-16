@@ -1,20 +1,27 @@
-import axios from "axios";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
 
 export const fetchUserProfile = createAsyncThunk(
     "profile/fetchUserProfile",
     async (token: string, { rejectWithValue }) => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/user`, {
+        const response = await fetch(`${BACKEND_URL}/user`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
-        return response.data.profile;
-      } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || "Failed to fetch user profile");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch user profile');
+        }
+        const data = await response.json();
+        return data.profile;
+      } catch (error: unknown) {
+        const err = error as Error;
+        return rejectWithValue(err.message || "Failed to fetch user profile");
       }
     }
   );

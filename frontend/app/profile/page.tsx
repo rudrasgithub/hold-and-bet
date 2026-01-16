@@ -29,40 +29,39 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto p-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-8">
+      <div className="container mx-auto p-3 sm:p-4 md:p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-4 sm:space-y-6 md:space-y-8">
           {/* Profile section */}
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-3 sm:space-y-4">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
-              <Avatar className="h-32 w-32 ring-4 ring-purple-600 ring-offset-4 ring-offset-gray-900">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-purple-600 ring-offset-2 sm:ring-offset-4 ring-offset-gray-900">
                 {/* Check if image exists, otherwise fallback */}
                 <AvatarImage src={userData.image || "/default-avatar.png"} alt={userData.name} />
-                <AvatarFallback className="bg-purple-600">{userData.name[0]}</AvatarFallback>
+                <AvatarFallback className="bg-purple-600 text-lg sm:text-xl md:text-2xl">{userData.name[0]}</AvatarFallback>
               </Avatar>
             </motion.div>
             <div className="text-center">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{userData.name}</h1>
-              <p className="text-gray-400">Premium Player</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{userData.name}</h1>
+              <p className="text-gray-400 text-sm sm:text-base">Premium Player</p>
             </div>
           </div>
 
           {/* Stats section */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: "Total Matches", value: `${userData.totalMatches}`, icon: Trophy },
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            {[{ label: "Total Matches", value: `${userData.totalMatches}`, icon: Trophy },
               { label: "Total Wins", value: `${userData.totalWins}`, icon: Target },
               { label: "Win Rate", value: `${userData.winningRate}%`, icon: User },
               { label: "Total Profit", value: `₹${userData.totalProfit}`, icon: Wallet },
             ].map((stat, index) => (
               <motion.div key={index} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
                 <Card className="bg-gray-800 border-purple-600/20 hover:border-purple-600/50 transition-colors">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-200">{stat.label}</CardTitle>
-                    <stat.icon className="h-4 w-4 text-purple-400" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-3 sm:p-4 md:p-6">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-gray-200">{stat.label}</CardTitle>
+                    <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-purple-400" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <p className="text-xs text-gray-400 mt-1">Lifetime {stat.label.toLowerCase()}</p>
+                  <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{stat.value}</div>
+                    <p className="text-xs text-gray-400 mt-1 hidden sm:block">Lifetime {stat.label.toLowerCase()}</p>
                   </CardContent>
                 </Card>
               </motion.div>

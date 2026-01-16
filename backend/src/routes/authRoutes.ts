@@ -1,17 +1,17 @@
 import { Request, Response, Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../config/prismaClient';
+import prisma from '@/lib/prisma';
 
 const router = Router();
 
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   const { email, name, password, image } = req.body;
-
+  console.log(email);
   try {
-    console.log('hitted');
+    console.log('registering');
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    console.log('hitted');
+    console.log('querired');
 
     if (existingUser) {
       console.log('hitted');
@@ -22,7 +22,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
           expiresIn: '7d',
         }
       );
-      console.log('hitted');
+      console.log('token generated');
       res.status(200).json({
         message: 'User already exists',
         user: existingUser,

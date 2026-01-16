@@ -3,7 +3,7 @@ import { stripe } from '../config/stripeConfig';
 import { CustomRequest } from '../middlewares/authMiddleware';
 import Stripe from 'stripe';
 import bodyParser from 'body-parser';
-import { prisma } from '../config/prismaClient';
+import prisma from '@/lib/prisma';
 
 const router = Router();
 

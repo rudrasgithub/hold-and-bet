@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import PlayingCard from "../components/PlayingCard";
-import axios from "axios";
 import DashboardSkeleton from "../components/DashboardSkeleton";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import {
@@ -32,7 +31,7 @@ const Dashboard = () => {
   const { session, status } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const balance = useSelector((state: RootState) => state.wallet.balance);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
   const [cardLoading, setcardLoading] = useState<boolean>(false);
   const {
     gameStarted,
@@ -58,12 +57,16 @@ const Dashboard = () => {
     if (session?.user.token) {
       const fetchBalance = async () => {
         try {
-          const response = await axios.get(`${BACKEND_URL}/wallet/balance`, {
+          const response = await fetch(`${BACKEND_URL}/wallet/balance`, {
+            method: 'GET',
             headers: {
-              Authorization: `Bearer ${session.user.token}`,
+              'Authorization': `Bearer ${session.user.token}`,
+              'Content-Type': 'application/json',
             },
           });
-          dispatch(updateBalance(response.data.balance));
+          if (!response.ok) throw new Error('Failed to fetch balance');
+          const data = await response.json();
+          dispatch(updateBalance(data.balance));
         } catch (error) {
           console.log(error)
           toast.error("Failed to fetch wallet balance");
@@ -117,11 +120,15 @@ const Dashboard = () => {
       return;
     }
     try {
-      await axios.post(`${BACKEND_URL}/games/${gameId}/hold`, { hold: `Card${index + 1}` }, {
+      const response = await fetch(`${BACKEND_URL}/games/${gameId}/hold`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session?.user.token}`,
+          'Authorization': `Bearer ${session?.user.token}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ hold: `Card${index + 1}` }),
       });
+      if (!response.ok) throw new Error('Failed to hold card');
       dispatch(setHeldCardIndex(index));
       toast.dismiss(isCardHeld)
       toast.success(`Card ${index + 1} is now held.`);
@@ -214,23 +221,23 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-4 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
             {greeting}, Player!
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg">
             Your Balance:
             <span className="font-bold ml-2 text-purple-400">₹{balance}</span>
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 md:space-y-8 order-2 lg:order-1">
             {!gameStarted ? (
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -239,14 +246,14 @@ const Dashboard = () => {
               >
                 <Button
                   onClick={startGame}
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-purple-600/20 transition-all"
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-xl shadow-lg hover:shadow-purple-600/20 transition-all"
                 >
                   Start Game
                 </Button>
               </motion.div>
             ) : (
-              <div className="space-y-8">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="space-y-4 sm:space-y-6 md:space-y-8">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6 justify-items-center">
                   {Object.keys(cards).length > 0
                     ? Object.values(cards).map((card, index) => {
                       const cardKey = `Card${index + 1}`;
@@ -304,11 +311,11 @@ const Dashboard = () => {
                     ))}
                 </div>
 
-                <div className="pt-5 flex justify-center gap-4">
+                <div className="pt-3 sm:pt-5 flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
                   <Button
                     onClick={revealCards}
                     disabled={Object.keys(bets).length === 0 || heldCardIndex === null || gameRevealed || loadingCards || cardLoading}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg"
                   >
                     {loadingCards ? "Revealing..." : "Reveal Cards"}
                   </Button>
@@ -316,7 +323,7 @@ const Dashboard = () => {
                     onClick={startGame}
                     variant="outline"
                     disabled={cardLoading && gameStarted}
-                    className="border-purple-600/50 hover:bg-purple-600/20 text-white px-8 py-6 text-lg"
+                    className="border-purple-600/50 hover:bg-purple-600/20 text-white px-4 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg"
                   >
                     New Game
                   </Button>
@@ -332,28 +339,28 @@ const Dashboard = () => {
             )}
           </div>
 
-          <div className="space-y-2 bg-gray-800 p-4 rounded-xl shadow-xl">
-            <h3 className="text-2xl font-semibold text-center text-white mb-3">Quick Info</h3>
-            <div className="mt-6 text-white space-y-2">
-              <h4 className="text-xl font-bold">How to Play:</h4>
-              <ul className="list-disc pl-4 space-y-1">
+          <div className="space-y-2 bg-gray-800 p-3 sm:p-4 rounded-xl shadow-xl order-1 lg:order-2">
+            <h3 className="text-xl sm:text-2xl font-semibold text-center text-white mb-2 sm:mb-3">Quick Info</h3>
+            <div className="mt-4 sm:mt-6 text-white space-y-2">
+              <h4 className="text-base sm:text-xl font-bold">How to Play:</h4>
+              <ul className="list-disc pl-4 space-y-1 text-sm sm:text-base">
                 <li>Hold a card, must hold one card before betting</li>
                 <li>Choose bet amount, click on a card to place a bet</li>
                 <li>Click Reveal Cards to see the results!</li>
               </ul>
               <hr />
             </div>
-            <p className="text-lg text-white">Bet Amount: ₹{selectedBetAmount}</p>
-            <p className="text-lg text-white">
+            <p className="text-sm sm:text-lg text-white">Bet Amount: ₹{selectedBetAmount}</p>
+            <p className="text-sm sm:text-lg text-white">
               Total Bets: ₹{Object.values(bets).reduce((sum, betAmount) => sum + betAmount, 0)}
             </p>
 
-            <div className="flex gap-2 justify-center mt-6">
+            <div className="flex flex-wrap gap-2 justify-center mt-4 sm:mt-6">
               {[5, 10, 20, 50, 100, 200, 500].map((amount) => (
                 <Button
                   key={amount}
                   onClick={() => dispatch(setSelectedBetAmount(amount))}
-                  className={`w-12 h-12 rounded-full ${selectedBetAmount === amount ? "bg-purple-600" : "bg-purple-400"} text-white`}
+                  className={`w-10 h-10 sm:w-12 sm:h-12 text-xs sm:text-sm rounded-full ${selectedBetAmount === amount ? "bg-purple-600" : "bg-purple-400"} text-white`}
                 >
                   ₹{amount}
                 </Button>

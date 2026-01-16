@@ -1,12 +1,11 @@
 import NextAuth from "next-auth";
 import GoogleProvider from 'next-auth/providers/google';
-import axios from 'axios';
 import crypto from 'crypto';
 
 const generateRandomPassword = (length: number): string => {
   return crypto.randomBytes(length).toString('hex');
 };
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
 
 const handler = NextAuth({
   providers: [
@@ -17,31 +16,57 @@ const handler = NextAuth({
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async signIn({ user }) {
-      console.log(user);
+    async signIn({ user, account }) {
+      console.log('SignIn callback triggered for user:', user.email);
       try {
         const randomPassword = generateRandomPassword(8);
-        console.log("rudra")
-        const response = await axios.post(`${BACKEND_URL}/register`, {
-          email: user.email,
-          password: randomPassword,
-          name: user.name,
-          image: user.image,
+        console.log('Calling backend register API:', `${BACKEND_URL}/register`);
+        const response = await fetch(`${BACKEND_URL}/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: user.email,
+            password: randomPassword,
+            name: user.name,
+            image: user.image,
+          }),
         });
 
-        const { usertoken } = response.data;
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Backend error:', errorData);
+          throw new Error(errorData.error || 'Registration failed');
+        }
 
+        const data = await response.json();
+        console.log('Backend response:', data);
+        const { usertoken } = data;
+
+        // Store token on user object
         user.token = usertoken;
+        
+        // Also store on account for backup
+        if (account) {
+          account.backendToken = usertoken;
+        }
 
         return true;
-      } catch (error) {
-        console.error('Error signing in:', error);
+      } catch (error: unknown) {
+        const err = error as Error;
+        console.error('Error signing in:', err.message || error);
         return false;
       }
     },
-    async jwt({ token, user }) {
-      if (user && user.token) {
+    async jwt({ token, user, account }) {
+      // On initial sign-in, user and account will be available
+      if (user?.token) {
         token.authToken = user.token;
+        console.log('JWT: Token set from user.token');
+      } else if (account?.backendToken) {
+        token.authToken = account.backendToken as string;
+        console.log('JWT: Token set from account.backendToken');
       }
       return token;
     },
@@ -50,6 +75,9 @@ const handler = NextAuth({
       if (token.authToken) {
         session.user.id = token.sub as string;
         session.user.token = token.authToken as string;
+        console.log('Session: Token attached to session.user.token');
+      } else {
+        console.log('Session: No authToken in JWT token');
       }
       return session;
     },

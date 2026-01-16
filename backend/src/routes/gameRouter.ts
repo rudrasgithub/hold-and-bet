@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { prisma } from '../config/prismaClient';
+import prisma from '@/lib/prisma';
 import { redisClient } from '../config/redisClient';
 import authenticate, { CustomRequest } from '../middlewares/authMiddleware';
 import {
@@ -64,7 +64,7 @@ router.post(
           userId: game.userId,
           status: game.status,
           createdAt: game.createdAt,
-          updatedAt: game.updatedAT,
+          updatedAt: game.updatedAt,
         },
       });
       return;
@@ -222,7 +222,7 @@ router.post(
           status: gameState.status,
           bets: gameState.bets,
           createdAt: gameState.createdAt,
-          updatedAt: gameState.updatedAT,
+          updatedAt: gameState.updatedAt,
         },
       });
 

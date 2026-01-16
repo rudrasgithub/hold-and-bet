@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,8 +17,15 @@ import { Transaction } from "@/types";
 import useAuth from "@/lib/useAuth";
 import { RootState } from "@/store";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
 const paymentlink = process.env.NEXT_PUBLIC_PAYMENT_LINK;
+
+interface PaginationState {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasMore: boolean;
+}
 
 const WalletPage = () => {
   const { session, status } = useAuth();
@@ -30,21 +36,42 @@ const WalletPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasMore: false,
+  });
+  const [paginatedTransactions, setPaginatedTransactions] = useState<Transaction[]>([]);
   const itemsPerPage = 5;
 
-  const fetchWalletData = useCallback(async () => {
-    if (session?.user.token) {
+  const fetchWalletData = useCallback(async (page: number = 1) => {
+    if (session?.user?.token) {
       try {
-        const response = await axios.get(`${BACKEND_URL}/wallet`, {
+        console.log('Fetching wallet from:', `${BACKEND_URL}/wallet?page=${page}&limit=${itemsPerPage}`);
+        
+        const response = await fetch(`${BACKEND_URL}/wallet?page=${page}&limit=${itemsPerPage}`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${session.user.token}`,
+            'Authorization': `Bearer ${session.user.token}`,
+            'Content-Type': 'application/json',
           },
         });
-        const { wallet, transactions } = response.data;
-
-        dispatch(setWalletData({ walletId: wallet.id, balance: wallet.balance, transactions }));
-      } catch (error) {
-        console.error("Error fetching wallet data:", error);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch wallet data');
+        }
+        
+        const { wallet, transactions, pagination: paginationData } = await response.json();
+        dispatch(setWalletData({ walletId: wallet.id, balance: wallet.balance, transactions: [] }));
+        setPaginatedTransactions(transactions);
+        setPagination(paginationData);
+        setCurrentPage(page);
+      } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Error fetching wallet data:", err.message || error);
+        toast.error(err.message || "Failed to fetch wallet data");
       } finally {
         setLoading(false);
       }
@@ -52,13 +79,20 @@ const WalletPage = () => {
       console.log("No token found in session");
       setLoading(false);
     }
-  }, [session?.user.token, dispatch]);
+  }, [session?.user?.token, dispatch, itemsPerPage]);
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchWalletData();
+      fetchWalletData(1);
     }
   }, [status, fetchWalletData]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setLoading(true);
+      fetchWalletData(newPage);
+    }
+  };
 
   const formatTimestamp = (date: string) => {
     try {
@@ -81,23 +115,29 @@ const WalletPage = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/wallet/withdraw`,
-        { amount: withdrawAmount },
-        {
-          headers: {
-            Authorization: `Bearer ${session?.user?.token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/wallet/withdraw`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: withdrawAmount }),
+      });
 
-      const { newBalance, transactions: updatedTransactions } = response.data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Withdrawal failed');
+      }
+
+      const { newBalance, transactions: updatedTransactions } = await response.json();
 
       dispatch(updateBalance(newBalance));
       updatedTransactions.forEach((transaction: Transaction) => dispatch(addTransaction(transaction)));
       toast.success(`Withdrawal of ₹${withdrawAmount} successful!`);
       setisWithdrawing(false);
       setIsDialogOpen(false);
+      // Refresh the transactions after withdrawal
+      fetchWalletData(1);
     } catch (error) {
       console.error("Error processing withdrawal:", error);
       toast.error("Withdrawal failed. Please try again.");
@@ -116,22 +156,19 @@ const WalletPage = () => {
     );
   }
 
-  const totalPages = Math.ceil(walletData.transactions.length / itemsPerPage);
-  const currentTransactions = walletData.transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as Transaction[];
-
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Card className="mb-8 bg-gray-800 border-purple-600/20">
-            <CardHeader>
-              <CardTitle className="text-gray-200">Wallet Balance</CardTitle>
+          <Card className="mb-4 sm:mb-6 md:mb-8 bg-gray-800 border-purple-600/20">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl text-gray-200">Wallet Balance</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
                 ₹{walletData.balance.toFixed(2)}
               </div>
-              <div className="mt-4 flex gap-4">
+              <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                   onClick={() => {
@@ -183,83 +220,92 @@ const WalletPage = () => {
           </Card>
 
           <Card className="bg-gray-800 border-purple-600/20">
-            <CardHeader>
-              <CardTitle className="text-gray-200">Transaction History</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl text-gray-200">Transaction History</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-700">
-                    <TableHead className="text-gray-400">Time</TableHead>
-                    <TableHead className="text-gray-400">Type</TableHead>
-                    <TableHead className="text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentTransactions.map((transaction, index) => (
-                    <TableRow key={index} className="border-gray-700">
-                      <TableCell className="text-gray-300">
-                        {formatTimestamp(transaction.updatedAt)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {transaction.type === "BetWin" ? (
-                            <TrendingUp className="text-green-500 h-4 w-4" />
-                          ) : transaction.type === "Deposit" ? (
-                            <TrendingUp className="text-green-500 h-4 w-4" />
-                          ) : (
-                            <TrendingDown className="text-red-500 h-4 w-4" />
-                          )}
-                          <span className="capitalize text-gray-300">{transaction.type}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        className={`font-medium ${
-                          transaction.type === "BetWin" || transaction.type === "Deposit"
-                            ? "text-green-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        ₹{transaction.amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {transaction.status === "Completed" ? (
-                            <CheckCircle2 className="text-green-500 h-4 w-4" />
-                          ) : (
-                            <Clock className="text-yellow-500 h-4 w-4" />
-                          )}
-                          <span
-                            className={`capitalize ${transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
-                              }`}
-                          >
-                            {transaction.status}
-                          </span>
-                        </div>
-                      </TableCell>
+            <CardContent className="p-2 sm:p-4 md:p-6 pt-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-700">
+                      <TableHead className="text-gray-400 text-xs sm:text-sm">Time</TableHead>
+                      <TableHead className="text-gray-400 text-xs sm:text-sm">Type</TableHead>
+                      <TableHead className="text-gray-400 text-xs sm:text-sm">Amount</TableHead>
+                      <TableHead className="text-gray-400 text-xs sm:text-sm hidden sm:table-cell">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedTransactions.map((transaction, index) => (
+                      <TableRow key={index} className="border-gray-700">
+                        <TableCell className="text-gray-300 text-xs sm:text-sm whitespace-nowrap">
+                          {formatTimestamp(transaction.updatedAt)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            {transaction.type === "BetWin" ? (
+                              <TrendingUp className="text-green-500 h-3 w-3 sm:h-4 sm:w-4" />
+                            ) : transaction.type === "Deposit" ? (
+                              <TrendingUp className="text-green-500 h-3 w-3 sm:h-4 sm:w-4" />
+                            ) : (
+                              <TrendingDown className="text-red-500 h-3 w-3 sm:h-4 sm:w-4" />
+                            )}
+                            <span className="capitalize text-gray-300 text-xs sm:text-sm">{transaction.type}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell
+                          className={`font-medium text-xs sm:text-sm ${
+                            transaction.type === "BetWin" || transaction.type === "Deposit"
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          ₹{transaction.amount.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            {transaction.status === "Completed" ? (
+                              <CheckCircle2 className="text-green-500 h-4 w-4" />
+                            ) : (
+                              <Clock className="text-yellow-500 h-4 w-4" />
+                            )}
+                            <span
+                              className={`capitalize text-sm ${transaction.status === "Completed" ? "text-green-500" : "text-yellow-500"
+                                }`}
+                            >
+                              {transaction.status}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-              <div className="flex justify-center gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="border-purple-600/50 hover:bg-purple-600/20 text-white"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="border-purple-600/50 hover:bg-purple-600/20 text-white"
-                >
-                  Next
-                </Button>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 mt-4">
+                <span className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
+                  Page {currentPage} of {pagination.totalPages} ({pagination.totalCount} total)
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    className="border-purple-600/50 hover:bg-purple-600/20 text-white text-xs sm:text-sm"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={!pagination.hasMore || loading}
+                    className="border-purple-600/50 hover:bg-purple-600/20 text-white text-xs sm:text-sm"
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
