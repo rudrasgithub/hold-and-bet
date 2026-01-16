@@ -76,7 +76,7 @@ router.post(
 );
 
 router.get('/:gameId', authenticate, async (req: Request, res: Response) => {
-  const gameId = req.params.gameId;
+  const gameId = req.params.gameId as string;
 
   try {
     const cachedGame = await redisClient.get(`game:${gameId}`);
@@ -107,7 +107,7 @@ router.post(
   '/:gameId/hold',
   authenticate,
   async (req: Request, res: Response) => {
-    const gameId = req.params.gameId;
+    const gameId = req.params.gameId as string;
     const { hold } = req.body;
 
     try {
@@ -147,7 +147,7 @@ router.post(
   '/:gameId/bet',
   authenticate,
   async (req: CustomRequest, res: Response) => {
-    const gameId = req.params.gameId;
+    const gameId = req.params.gameId as string;
     console.log(gameId);
     const { bets } = req.body;
     console.log('bets', bets);
@@ -239,7 +239,7 @@ router.post(
   '/:gameId/reveal',
   authenticate,
   async (req: CustomRequest, res: Response) => {
-    const { gameId } = req.params;
+    const gameId = req.params.gameId as string;
     const userId = req.user?.id;
     console.log('game/reveal');
     try {

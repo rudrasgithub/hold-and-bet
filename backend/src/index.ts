@@ -66,7 +66,18 @@ app.use('/api/wallet', walletRouter);
 app.use('/api', authRouter);
 app.use('/api/user', userRouter);
 
-const PORT = process.env.PORT || 80;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Only listen in non-Vercel environments
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 80;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+// Export the Express app for Vercel
+export default app;
