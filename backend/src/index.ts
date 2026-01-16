@@ -28,20 +28,27 @@ app.use(
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'https://hold-and-bet.vercel.app',
   process.env.FRONTEND_URL,
-].filter(Boolean);
+].filter(Boolean) as string[];
+
+console.log('Allowed CORS origins:', allowedOrigins);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) {
+        console.log('Request with no origin - allowing');
+        return callback(null, true);
+      }
 
       if (allowedOrigins.includes(origin)) {
+        console.log('CORS allowed origin:', origin);
         callback(null, true);
       } else {
-        console.log('CORS blocked origin:', origin);
-        callback(null, true); // Allow all origins in development
+        console.log('CORS origin not in list, allowing anyway:', origin);
+        callback(null, true); // Allow all origins for now
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -50,6 +57,9 @@ app.use(
     exposedHeaders: ['Content-Length', 'X-Requested-With'],
   })
 );
+
+// Pre-flight OPTIONS handler
+app.options('*', cors());
 
 app.use('/api/wallet', webhookRouter);
 

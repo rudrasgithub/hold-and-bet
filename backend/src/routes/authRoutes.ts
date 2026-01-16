@@ -7,11 +7,18 @@ const router = Router();
 
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   const { email, name, password, image } = req.body;
-  console.log(email);
+  console.log('Register endpoint called with email:', email);
+  
+  if (!email || !password) {
+    console.log('Missing required fields: email or password');
+    res.status(400).json({ error: 'Email and password are required' });
+    return;
+  }
+  
   try {
-    console.log('registering');
+    console.log('Checking for existing user...');
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    console.log('querired');
+    console.log('User query completed, exists:', !!existingUser);
 
     if (existingUser) {
       console.log('hitted');
@@ -66,7 +73,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     });
     return;
   } catch (error) {
-    res.status(500).json({ error: 'Server error', details: error });
+    console.error('Register endpoint error:', error);
+    res.status(500).json({ error: 'Server error', details: String(error) });
     return;
   }
 });
