@@ -155,13 +155,13 @@ const Dashboard = () => {
     const isBetPlacing = toast.loading("Processing your bet, just a moment...");
 
     setcardLoading(true);
-    
+
     const cardId = `Card${cardIndex + 1}`;
     const updatedBets = { ...bets, [cardId]: (bets[cardId] || 0) + amount };
     dispatch(setBets(updatedBets));
     if (session?.user.token) {
       try {
-        const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount: updatedBets[cardId]  }, token: session.user.token })).unwrap();
+        const response = await dispatch(placeBetThunk({ gameId: gameId as string, betData: { cardId, amount: updatedBets[cardId] }, token: session.user.token })).unwrap();
         if (response) {
           setcardLoading(false)
 
