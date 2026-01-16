@@ -201,7 +201,10 @@ const WalletPage = () => {
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                   onClick={() => {
-                    window.location.href = `${paymentlink}?prefilled_email=${session?.user.email}&prefilled_customer_name=${session?.user.name}&client_reference_id=${walletData.walletId}`;
+                    const email = encodeURIComponent(session?.user?.email || '');
+                    const name = encodeURIComponent(session?.user?.name || '');
+                    const walletId = encodeURIComponent(walletData.walletId || '');
+                    window.location.href = `${paymentlink}?prefilled_email=${email}&prefilled_customer_name=${name}&client_reference_id=${walletId}`;
                   }}
                 >
                   <ArrowUpCircle className="h-4 w-4" />
